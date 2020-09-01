@@ -2,7 +2,7 @@
 
 # Fyrejet
 
-![logo](./fyre.png | width=100)
+<img src="./fyre.png" alt="logo" height="150" width="150" />
 
 ## What is Fyrejet?
 
