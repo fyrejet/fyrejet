@@ -107,8 +107,5 @@
       "/test/*",
       "/examples/*"
     ]
-  },
-  "publishConfig": { 
-    "registry": "https://npm.pkg.github.com/" 
   }
 }
