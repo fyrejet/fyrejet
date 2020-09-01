@@ -1,4 +1,8 @@
+ 
+
 # Fyrejet
+
+![logo](./fyre.png | width=100)
 
 ## What is Fyrejet?
 
