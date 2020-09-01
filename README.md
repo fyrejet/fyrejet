@@ -14,7 +14,7 @@ Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to b
 
 
 
-## What the Fyrejet is not?
+## What Fyrejet is not?
 
 Unfortunately, Fyrejet is not a solution to all problems. For instance, Fyrejet is not a way around writing proper code. Additionally, greater framework performance does not necessarily translate into faster web-service. If your web-service works slow due to: 
 
@@ -340,7 +340,7 @@ app.start(3001, (socket) => {
 
 ## Benchmarks
 
-It is a pseudo-scientific benchmark, but whatevs:)
+It is a pseudo-scientific benchmark, but whatevs :)
 
 
 
