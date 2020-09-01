@@ -6,9 +6,11 @@ Fyrejet is a web-framework that is designed for speed and ease-of-use. After wor
 
 Unfortunately, that comes at a cost. While Express brings the speed of development, its performance is just okay-ish. Other frameworks either provide different APIs, are incompatible with Express middlewares or provide less functionality. For instance, Restana, a great API-oriented framework by jkybernees provides incredible performance, but only a subset of Express APIs, making it not suitable as an Express replacement.
 
-Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to be faster than Express, while providing most of the original Express API. In fact, Fyrejet uses slightly modified [^1]Express automated unit tests to verify the codebase. Additionally, Fyrejet is flexible enough to offer you additional abilities to increase your route performance, such as disabling Express API for certain routes or for the whole project. You choose.
+Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to be faster than Express, while providing most of the original Express API. In fact, Fyrejet uses slightly modified<a name="footnote1">[1]</a> Express automated unit tests to verify the codebase. Additionally, Fyrejet is flexible enough to offer you additional abilities to increase your route performance, such as disabling Express API for certain routes or for the whole project. You choose.
 
-[^1]: 35 tests removed, because they are irrelevant, ~6 tests modified to test a replacement API instead. 1100 out of 1135 Express tests are used.
+
+
+[[1]](#footnote1) - 35 tests removed, because they are irrelevant, ~6 tests modified to test a replacement API instead. 1100 out of 1135 Express tests are used.
 
 
 
@@ -102,7 +104,7 @@ use uWebSockets
 
 #### Initialization-time settings
 
-Fyrejet uses four Initialization-time settings inherited from Restana [^2]. These are:
+Fyrejet uses four Initialization-time settings inherited from Restana <a name="footnote2">[2]</a>. These are:
 
 | Setting                          | Default value   | Type               | Description                                                  |
 | -------------------------------- | --------------- | ------------------ | ------------------------------------------------------------ |
@@ -111,7 +113,9 @@ Fyrejet uses four Initialization-time settings inherited from Restana [^2]. Thes
 | `prioRequestsProcessing`         | `true`          | `Boolean`          | If `true`, HTTP requests processing/handling is prioritized using `setImmediate`. Usually does not need to be changed and you are advised not to change it, unless you know what you are doing. uWebSockets is a known exception to this rule. |
 | `errorHandler`                   | See description | `Function`         | Optional global error handler function. Default value: `(err, req, res) => { res.statusCode = 500; res.end(err.message) ` |
 
-[^2]: Default values are not always inherited, however
+
+
+[[2]](#footnote2) - Default values are not always inherited, however
 
 
 
