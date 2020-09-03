@@ -1,7 +1,6 @@
 var express = require('../')
 var request = require('supertest')
 var assert = require('assert')
-const next = require('../lib/routing/next')
 
 describe('Special Routing Mode', function () {
   	describe('API Mode', function () {
@@ -196,6 +195,23 @@ describe('Special Routing Mode', function () {
         		  .expect('example.com', done)
 			})
 
+		})
+	})
+	describe('No ETag Mode', function () {
+		it('should work', function (done) {
+			var app = express()
+
+			app.get('/', function (req, res) {
+				res.send('I do not have ETag')
+			}, 'noEtag')
+
+			request(app)
+			  .get('/')
+			  .expect(200)
+			  .end(function(err, res) {
+				assert(!res.headers['etag'])
+				done()
+			  })
 		})
 	})
 })
