@@ -61,7 +61,7 @@ Fyrejet API is very similar to Express API. In general, you are advised to use t
 | --------------------- | :--------------------: | :----------------------------------------------------------- | ------------------------------------------------------------ |
 | Routing, general      | Difference in behavior | Express goes through each route in the stack, verifying, whether it is appropriate for the request. When a request is made again, the same operation has to start all over again. | Fyrejet routing and base is basically a fork of Restana and its dependencies, 0http and Trouter. When an initial request is made, like ```GET /hi HTTP/1.1``` Fyrejet finds which routes are appropriate for the request and then caches those routes. This way, Fyrejet will be able to load only the required routes upon a similar request in the future. |
 | Routing, details      | Difference in behavior | Changing req.url or req.method only affects the routes that have not been checked yet. | Changing ```req.url``` or ```req.method``` to a different value makes Fyrejet restart the routing process for your request within Fyrejet instance. All the changes made to data (such as ```res.locals``` or ```req.params```) during routing persist. If you try to change value to the same value (e.g., if ```req.method === "POST"; req.method = "POST"```), nothing occurs. However, if you want to avoid the rerouting in other cases, you can use ```req.setUrl(url)``` and ```req.setMethod(method)```. For more information, see [Rerouting](#Rerouting). |
-| `req.url`             | Difference in behavior | req.url is modified to reflect the relative url in relation to the middleware route. | req.url does not operate this way in Fyrejet and is heavily used in in internal routing. As a replacement, you can use ```req.currentUrl```. See: req.currentUrl |
+| `req.url`             | Difference in behavior | req.url is modified to reflect the relative url in relation to the middleware route. | req.url does not operate this way in Fyrejet and is heavily used in in internal routing. As a replacement, you can use ```req.currentUrl```. |
 | `res.send`            | Non-breaking additions | Provided                                                     | Provided, with very slight modifications (does not affect API compatibility). Also, Fyrejet provides alternative `res.sendLite`, which is unmodified `res.send` from Restana project. It is supposed to be faster and more lightweight, but with different functionality (no ETags, for example, but it is capable of sending objects faster and setting headers directly). See Restana's [documentation on `res.send`](https://github.com/jkyberneees/restana#the-ressend-method) for information on `res.sendLite` behavior. |
 | Special routing modes | Non-breaking additions | N/A                                                          | Fyrejet has several special routing modes. Unlike Express, you can enable API-only mode (both system- and route-wide), turn most of Express `req` properties into functions (both system- and route-wide) for increased performance, as well as disable ETags for individual routes. See '[Special routing modes](#Special Routing Modes)'. |
 
@@ -226,11 +226,17 @@ hi, sweetheart!* Closing connection 0
 | 4    | Check if route ```app.get('/hi', (req,res,next) => {...})``` is appropriate. Execute function. Transfer control to `next()` function | Transfer control to `next()` function. `req.method` changed. Go through steps 0-2 again. Do *partial* (and very limited) init middleware re-run. |
 | 5    | Go to default route, since no other user-defined routes are available. Respond to request with `404` error | Since ```app.post('/hi', (req,res,next) => {...})``` is now *the* appropriate route, Fyrejet goes through it and executes function. Then, it responds to request with `200`, because of `return res.send('hi, sweetheart!')` |
 
+#####  How to avoid rerouting?
+
+Sometimes, rerouting is not acceptable. In this cases, you can change the method or url with these helper functions:
+
+```req.setUrl(url)``` and ```req.setMethod(method)```. Both return req object, so they are chainable.
+
 
 
 ## Special Routing Modes
 
-Fyrejet supports several additional route modes. Both offer increased performance at the cost of some sacrifices. For specific performance results, please check the [Benchmarks](#Benchmarks). Please do note that Special Routing Modes were a lesser priority at the time of this initial release, so those modes are not covered with tests at this point. This feature is thus subject to change and is to be considered alpha-version feature.
+Fyrejet supports several additional route modes. Both offer increased performance at the cost of some sacrifices. For specific performance results, please check the [Benchmarks](#Benchmarks). This feature is considered stable, but some additional testing in 'the wild' would be appreciated.
 
 ### API mode
 
