@@ -1,6 +1,6 @@
  
 
-# Fyrejet
+# Fyrejet 1.1
 
 <img src="./fyre.png" alt="logo" height="150" width="150" />
 
