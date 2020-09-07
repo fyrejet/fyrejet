@@ -13,7 +13,6 @@ var res = require('./lib/response')
 var bodyParser = require('body-parser')
 var finalhandler = require('finalhandler')
 var mixin = require('merge-descriptors')
-var stream = require('stream');
 
 const requestRouter = require('./lib/routing/request-router')
 
@@ -24,6 +23,11 @@ var appCore = function (options, server, mounted) {
 
   const startFn = (...args) => {
     if (!args || !args.length) args = [3000]
+    if (options.serverType === "uWebSocket" && args.length === 1) {
+      args.push(() => {
+        console.log('Fyrejet on uWS is running')
+      })
+    }
     server.listen(...args)
     return server
   }
