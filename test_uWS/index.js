@@ -1,5 +1,5 @@
 var express = require('..')
-const low = require('0http/lib/server/low')
+const low = require('..').uwsCompat
 
 module.exports = function(...params) {
 	return express({
