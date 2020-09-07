@@ -5,81 +5,81 @@ var express = require('../')
 var request = require('supertest')
 
 describe('express.json()', function () {
-  //it('should parse JSON', function (done) {
-  //  let server = createApp().listen(9999, () => {})
-  //  request
-  //    .post('http://localhost:9999/')
-  //    .set('Content-Type', 'application/json')
-  //    .send('{"user":"tobi"}')
-  //    .end((err,res) => {
-  //      if (!err && res.text === '{"user":"tobi"}') {
-  //        server.close();
-  //        done()
-  //      }
-  //      else {
-  //        console.log('Something went wrong')
-  //        server.close();
-  //        done('smth-wrong')
-  //      }
-  //    })
-  //})
-//
-  //it('should handle Content-Length: 0', function (done) {
-  //  let server = createApp().listen(9999, () => {})
-  //  request
-  //    .post('http://localhost:9999/')
-  //    .set('Content-Type', 'application/json')
-  //    .set('Content-Length', '0')
-  //    .end((err,res) => {
-  //      if (!err && res.text === '{}') {
-  //        server.close();
-  //        done()
-  //      }
-  //      else {
-  //        console.log('Something went wrong')
-  //        server.close();
-  //        done('smth-wrong')
-  //      }
-  //    })
-  //})
-//
-  //it('should handle empty message-body', function (done) {
-  //  let server = createApp().listen(9999, () => {})
-  //  request
-  //    .post('http://localhost:9999/')
-  //    .set('Content-Type', 'application/json')
-  //    .set('Transfer-Encoding', 'chunked')
-  //    .end((err,res) => {
-  //      if (!err && res.text === '{}') {
-  //        server.close();
-  //        done()
-  //      }
-  //      else {
-  //        console.log('Something went wrong')
-  //        server.close();
-  //        done('smth-wrong')
-  //      }
-  //    })
-  //})
-//
-  //it('should handle no message-body', function (done) {
-  //  let server = createApp().listen(9999, () => {})
-  //  request
-  //    .post('http://localhost:9999/')
-  //    .set('Content-Type', 'application/json')
-  //    .unset('Transfer-Encoding')
-  //    .end((err,res) => {
-  //      if (!err && res.text === '{}') {
-  //        server.close();
-  //        done()
-  //      }
-  //      else {
-  //        console.log('Something went wrong')
-  //        server.close();
-  //        done('smth-wrong')
-  //      }
-  //    })
-  //})
+  it('should parse JSON', function (done) {
+    let server = createApp().listen(9999, () => {})
+    request
+      .post('http://localhost:9999/')
+      .set('Content-Type', 'application/json')
+      .send('{"user":"tobi"}')
+      .end((err,res) => {
+        if (!err && res.text === '{"user":"tobi"}') {
+          server.close();
+          done()
+        }
+        else {
+          console.log('Something went wrong')
+          server.close();
+          done('smth-wrong')
+        }
+      })
+  })
+
+  it('should handle Content-Length: 0', function (done) {
+    let server = createApp().listen(9999, () => {})
+    request
+      .post('http://localhost:9999/')
+      .set('Content-Type', 'application/json')
+      .set('Content-Length', '0')
+      .end((err,res) => {
+        if (!err && res.text === '{}') {
+          server.close();
+          done()
+        }
+        else {
+          console.log('Something went wrong')
+          server.close();
+          done('smth-wrong')
+        }
+      })
+  })
+
+  it('should handle empty message-body', function (done) {
+    let server = createApp().listen(9999, () => {})
+    request
+      .post('http://localhost:9999/')
+      .set('Content-Type', 'application/json')
+      .set('Transfer-Encoding', 'chunked')
+      .end((err,res) => {
+        if (!err && res.text === '{}') {
+          server.close();
+          done()
+        }
+        else {
+          console.log('Something went wrong')
+          server.close();
+          done('smth-wrong')
+        }
+      })
+  })
+
+  it('should handle no message-body', function (done) {
+    let server = createApp().listen(9999, () => {})
+    request
+      .post('http://localhost:9999/')
+      .set('Content-Type', 'application/json')
+      .unset('Transfer-Encoding')
+      .end((err,res) => {
+        if (!err && res.text === '{}') {
+          server.close();
+          done()
+        }
+        else {
+          console.log('Something went wrong')
+          server.close();
+          done('smth-wrong')
+        }
+      })
+  })
 
   it('should 400 when invalid content-length', function (done) {
     var app = express()
