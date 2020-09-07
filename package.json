@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
-    "test": "mocha --require test/support/env --reporter spec --bail --check-leaks test/ test/acceptance/",
+    "test": "mocha --require test/support/env --reporter spec --bail --check-leaks test/ test/acceptance/ test_uWS/ test_uWS/acceptance/",
     "postinstall": "node ./lib/tasks/postinstall.js"
   },
   "repository": {

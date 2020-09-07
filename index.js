@@ -13,6 +13,7 @@ var res = require('./lib/response')
 var bodyParser = require('body-parser')
 var finalhandler = require('finalhandler')
 var mixin = require('merge-descriptors')
+var stream = require('stream');
 
 const requestRouter = require('./lib/routing/request-router')
 
@@ -20,27 +21,13 @@ var initMiddleware = require('./lib/middleware/init')
 const { logerror } = require('./lib/utils')
 
 var appCore = function (options, server, mounted) {
-  if (options.serverType === 'uWebSocket') {
-    req.listeners = function () {
-      return []
-    }
-    req.resume = function () {
-      return this;
-    }
-    req.socket = {
-      destroy: function() {
-        return
-      }
-    }
-    res.serverType = 'uWebSocket'
-  }
 
   const startFn = (...args) => {
     if (!args || !args.length) args = [3000]
     server.listen(...args)
     return server
   }
-  const core = {
+  var core = {
     errorHandler: options.errorHandler,
     fyrejetApp: true,
     newRouter () {
@@ -91,6 +78,44 @@ var appCore = function (options, server, mounted) {
         resolve()
       })
     })
+  }
+
+  if (options.serverType === 'uWebSocket') {
+
+    req.listeners = function () {
+      return []
+    }
+    req.resume = function () {
+      return this;
+    }
+    req.socket = {
+      destroy: function() {
+        return
+      }
+    }
+
+    res.serverType = 'uWebSocket'
+    let oldCoreHandle = core.handle
+    core.handle = function(req,res,step) {
+      
+      mixin(req, EventEmitter.prototype)
+      mixin(res, EventEmitter.prototype)
+      req.on('newListener', (event, listener) => {
+
+        if (event === 'end' && !req.bodyParsingDone) {
+          if (req.rUWS_internal.bodyParsed) {
+            
+            req.bodyParsingDone = true
+            req.emit('data', req.body)
+            req.once('end', listener) 
+            req.emit('end')
+            req.emit('close')
+          }
+        }
+      });
+      return oldCoreHandle.apply(this, [req,res,step])
+    }
+    
   }
   return core
 }
@@ -208,6 +233,8 @@ exports.response = res
 
 // exports.Route = Route;
 exports.Router = require('./lib/routing/request-router-constructor')
+
+exports.uwsCompat = require('./lib/uwsCompat')
 
 /**
  * Replace Express removed middleware with an appropriate error message. We are not express, but we will imitate it precisely

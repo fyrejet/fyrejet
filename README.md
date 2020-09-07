@@ -326,9 +326,9 @@ However, uWebSockets offers promising performance dividends that can be reaped i
 'use strict'
 
 // preliminary testing done with uWS 17.5.0, but it is NOT covered with tests yet
-const low = require('0http/lib/server/low') 
-/* you will need Rolando Santamaria Maso's (jkyberneees) excellent 0http. 
-	you are responsible for installing it yourself. BYOB kind of situation.
+const low = require('../index').uwsCompat
+/* once more based on Rolando Santamaria Maso's (jkyberneees) excellent 0http. 
+  some small changes had to be made in order to make testing whether the request body has been processed more straightforward.
 */
 const app = require('../index')({
   prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish
