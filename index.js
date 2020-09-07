@@ -24,7 +24,14 @@ var appCore = function (options, server, mounted) {
     req.listeners = function () {
       return []
     }
-    req.resume = function () {}
+    req.resume = function () {
+      return this;
+    }
+    req.socket = {
+      destroy: function() {
+        return
+      }
+    }
     res.serverType = 'uWebSocket'
   }
 
@@ -186,14 +193,6 @@ exports.static = require('./lib/additions/static.js')
 exports.text = bodyParser.text
 exports.urlencoded = bodyParser.urlencoded
 
-/**
- * Helper function for creating a getter on an object.
- *
- * @param {Object} obj
- * @param {String} name
- * @param {Function} getter
- * @private
- */
 
 /**
  * Expose the prototypes.
@@ -237,7 +236,7 @@ var removedMiddlewares = [
 removedMiddlewares.forEach(function (name) {
   Object.defineProperty(exports, name, {
     get: function () {
-      throw new Error('Most middleware (like ' + name + ') is no longer bundled with Express and must be installed separately. Please see https://github.com/senchalabs/connect#middleware.')
+      throw new Error('Most middleware (like ' + name + ') is no longer bundled with Express (and thus Fyrejet) and must be installed separately. Please see https://github.com/senchalabs/connect#middleware.')
     },
     configurable: true
   })
