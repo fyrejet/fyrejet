@@ -105,14 +105,24 @@ var appCore = function (options, server, mounted) {
       req.on('newListener', (event, listener) => {
 
         if (event === 'end' && !req.bodyParsingDone) {
-          if (req.rUWS_internal.bodyParsed) {
-            
-            req.bodyParsingDone = true
-            req.emit('data', req.rUWS_internal.body)
-            req.once('end', listener) 
-            req.emit('end')
-            req.emit('close')
+          let timer
+          function checkParsed() {
+            if (req.rUWS_internal.bodyParsed) {
+
+              req.bodyParsingDone = true
+
+              req.emit('data', req.rUWS_internal.body)
+              req.once('end', listener) 
+              req.emit('end')
+              req.emit('close')
+              if (timer) return clearInterval(timer)
+              return
+            }
+            else if (!timer) {
+              timer = setInterval(checkParsed, 250)
+            }
           }
+          checkParsed()
         }
       });
       return oldCoreHandle.apply(this, [req,res,step])
