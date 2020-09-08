@@ -24,9 +24,7 @@ var appCore = function (options, server, mounted) {
   const startFn = (...args) => {
     if (!args || !args.length) args = [3000]
     if (options.serverType === "uWebSocket" && args.length === 1) {
-      args.push(() => {
-        console.log('Fyrejet on uWS is running')
-      })
+      args.push(() => {}) // stub function
     }
     server.listen(...args)
     return server
@@ -101,7 +99,7 @@ var appCore = function (options, server, mounted) {
     res.serverType = 'uWebSocket'
     let oldCoreHandle = core.handle
     core.handle = function(req,res,step) {
-      
+      req.body = {};
       mixin(req, EventEmitter.prototype)
       mixin(res, EventEmitter.prototype)
       req.on('newListener', (event, listener) => {
@@ -110,7 +108,7 @@ var appCore = function (options, server, mounted) {
           if (req.rUWS_internal.bodyParsed) {
             
             req.bodyParsingDone = true
-            req.emit('data', req.body)
+            req.emit('data', req.rUWS_internal.body)
             req.once('end', listener) 
             req.emit('end')
             req.emit('close')
