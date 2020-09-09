@@ -13,27 +13,50 @@ var res = require('./lib/response')
 var bodyParser = require('body-parser')
 var finalhandler = require('finalhandler')
 var mixin = require('merge-descriptors')
+var uwsCompat = require('./lib/uwsCompat')
 
 const requestRouter = require('./lib/routing/request-router')
 
 var initMiddleware = require('./lib/middleware/init')
 const { logerror } = require('./lib/utils')
 
-var appCore = function (options, server, mounted) {
-  if (options.serverType === 'uWebSocket') {
-    req.listeners = function () {
-      return []
-    }
-    req.resume = function () {}
-    res.serverType = 'uWebSocket'
-  }
-
+var appCore = function (options, server, app) {
   const startFn = (...args) => {
     if (!args || !args.length) args = [3000]
+    
+    if (options.serverType === "uWebSockets") {
+      var __address = {}
+      server.__address = __address
+      if (typeof args[args.length - 1] !== 'function')  {
+        args.push((socket) => {
+          // stub function
+        })
+      }
+      var ipFamily = app.get('ipFamily')
+      if (ipFamily !== 'IPv6' && ipFamily !== 'IPv4') ipFamily = 'IPv6'
+      
+      switch (args.length >= 3) {
+        case true:
+          server.__address.address = args[0]
+          server.__address.port = args[1]
+          server.__address.family = ipFamily
+          break;
+        case false:
+          server.__address.port = args[0]
+          server.__address.family = ipFamily
+          if (ipFamily === 'IPv6') server.__address.address = '::'
+          else server.__address.address = '127.0.0.1'
+          break
+      }
+      server.address = () => {
+        
+        return __address
+      }
+    }
     server.listen(...args)
     return server
   }
-  const core = {
+  var core = {
     errorHandler: options.errorHandler,
     fyrejetApp: true,
     newRouter () {
@@ -51,8 +74,12 @@ var appCore = function (options, server, mounted) {
     getRouter () {
       return this.getRouter()
     },
-
+    uWebSockets: function() {
+      if (server.keepAliveTimeout) return false
+      return true
+    },
     handle: function handle (req, res, step) {
+      res.__serverType = options.serverType
       res.defaultErrHandler = finalhandler(req, res, {
         env: this.get('env'),
         onerror: logerror.bind(this)
@@ -75,16 +102,16 @@ var appCore = function (options, server, mounted) {
     start: startFn,
     listen: startFn,
     address: function () {
-      const addr = server.address()
-      return addr
+      if (server.address && typeof server.address === 'function') {
+        return server.address()
+      } 
+      return server.__address
     },
-    close: () => new Promise((resolve, reject) => {
-      server.close((err) => {
-        if (err) reject(err)
-        resolve()
-      })
-    })
+    close: (cb) => {
+      return server.close(cb)
+    }
   }
+
   return core
 }
 
@@ -96,6 +123,11 @@ var defaultErrorHandler = (err, req, res) => {
 
 function createApplication (options = {}) {
   options.errorHandler = options.errorHandler || defaultErrorHandler
+  if (options.serverType === 'uWebSocket' || process.env.UWS_SERVER_ENABLED_FOR_TEST === 'TRUE') {
+    options.serverType = 'uWebSockets'
+    options.prioRequestsProcessing = false
+    options.server = uwsCompat()
+  }
 
   var server = options.server || require('http').createServer()
 
@@ -121,9 +153,10 @@ function createApplication (options = {}) {
     app.handle(req, res, next)
   }
 
-  mixin(app, appCore(options, server))
-  mixin(app, EventEmitter.prototype)
   mixin(app, proto)
+  mixin(app, appCore(options, server, app))
+  mixin(app, EventEmitter.prototype)
+  
 
   app.request = Object.assign({}, req)
 
@@ -186,14 +219,6 @@ exports.static = require('./lib/additions/static.js')
 exports.text = bodyParser.text
 exports.urlencoded = bodyParser.urlencoded
 
-/**
- * Helper function for creating a getter on an object.
- *
- * @param {Object} obj
- * @param {String} name
- * @param {Function} getter
- * @private
- */
 
 /**
  * Expose the prototypes.
@@ -209,6 +234,8 @@ exports.response = res
 
 // exports.Route = Route;
 exports.Router = require('./lib/routing/request-router-constructor')
+
+exports.uwsCompat = uwsCompat
 
 /**
  * Replace Express removed middleware with an appropriate error message. We are not express, but we will imitate it precisely
@@ -237,7 +264,7 @@ var removedMiddlewares = [
 removedMiddlewares.forEach(function (name) {
   Object.defineProperty(exports, name, {
     get: function () {
-      throw new Error('Most middleware (like ' + name + ') is no longer bundled with Express and must be installed separately. Please see https://github.com/senchalabs/connect#middleware.')
+      throw new Error('Most middleware (like ' + name + ') is no longer bundled with Express (and thus Fyrejet) and must be installed separately. Please see https://github.com/senchalabs/connect#middleware.')
     },
     configurable: true
   })

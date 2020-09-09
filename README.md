@@ -1,6 +1,6 @@
  
 
-# Fyrejet 1.1
+# Fyrejet 2
 
 <img src="./fyre.png" alt="logo" height="150" width="150" />
 
@@ -10,11 +10,19 @@ Fyrejet is a web-framework that is designed for speed and ease-of-use. After wor
 
 Unfortunately, that comes at a cost. While Express brings the speed of development, its performance is just okay-ish. Other frameworks either provide different APIs, are incompatible with Express middlewares or provide less functionality. For instance, Restana, a great API-oriented framework by jkybernees provides incredible performance, but only a subset of Express APIs, making it not suitable as an Express replacement.
 
-Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to be faster than Express, while providing most of the original Express API. In fact, Fyrejet uses slightly modified<sup>[1](#footnote1)</sup> Express automated unit tests to verify the codebase. Additionally, Fyrejet is flexible enough to offer you additional abilities to increase your route performance, such as disabling Express API for certain routes or for the whole project. You choose.
+Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to be faster than Express, while providing most of the original Express API. In fact, Fyrejet uses slightly modified<sup>[1](#footnote1)</sup> Express automated unit tests to verify the codebase. Moreover, Fyrejet offers you to use Express APIs with uWebSockets.js, enabling even greater performance at the cost of minor incompatibilities.
+
+Finally, Fyrejet is flexible enough to offer you additional abilities to increase your route performance, such as disabling Express API for certain routes or for the whole project. You choose.
 
 
 
-<a name="footnote1">[1]</a>: 35 tests removed, because they are irrelevant, ~6 tests modified to test a replacement API instead. 1100 out of 1135 Express tests are used.
+<a name="footnote1">[1]</a>: 
+
+* `50` tests removed, because they are arguably irrelevant (`test/Route.js` and `test/Router.js`)
+* `~6` tests modified to test a replacement API instead (`req.currentUrl`)
+* `1` test removed, because deprecated functionality was too much time to implement. 
+* `1091` out of `1147` Express tests are used, including aforementioned modified tests. Total number of tests used by Fyrejet: `1114`
+* Tests passed by uWebSockets.js implementation: `1113` out of `1114` (minor inconvenience at best)
 
 
 
@@ -40,9 +48,15 @@ Fyrejet is shared with the community under MIT License.
 
 
 
+## Breaking changes from `1.x` to `2.0`
+
+* `uWebSockets.js` compatibility implementation has been rewritten from scratch and it no longer relies on 0http's `low` library, at least until it has the same improvements as we do have. Moreover, the tests are now shared between `Fyrejet` and `Fyrejet + uWebSockets.js`. As such, certain dirty hacks are no longer used, which means that projects using `Fyrejet 1.x` and uWebSockets can be slightly incompatible with `Fyrejet 2`. Thus, according to Semantic Versioning, it has to versioned as `Fyrejet 2`.
+* When using `uWebSockets.js`, `serverType` has to be `uWebSockets` and not `uWebSocket`, as the former is a more correct project name. `uWebSocket` will be silently changed into `uWebSockets`. Next release will show deprecation messages.
+* That's it :)
+
+
+
 ## Installation
-
-
 
 In order to install and test Fyrejet, you can issue the following commands:
 
@@ -228,7 +242,7 @@ hi, sweetheart!* Closing connection 0
 
 #####  How to avoid rerouting?
 
-Sometimes, rerouting is not acceptable. In this cases, you can change the method or url with these helper functions:
+Sometimes, rerouting is not acceptable. In these cases, you can change the method or url with these helper functions:
 
 ```req.setUrl(url)``` and ```req.setMethod(method)```. Both return req object, so they are chainable.
 
@@ -312,13 +326,11 @@ No known caveats yet.
 
 ## uWebSockets
 
-Fyrejet includes some preliminary support for uWebSockets.
+Fyrejet includes BETA support for uWebSockets.
 
-Please do note that uWebSockets was a lesser priority at the time of this initial release, so uWebSockets are not covered with tests at this point. Additionally, only version 17.5.0 was used, so there is no guarantee it will work with newer versions. This feature is thus subject to change and is to be considered alpha-version feature.
+Versions 17.5.0 and 18.5.0 have been tested and do seem to work. Despite this, minor incompatibilities are expected. Please refer to Known problems section.
 
-However, uWebSockets offers promising performance dividends that can be reaped in the future to accelerate existing Express apps. For specific performance results, please check the [Benchmarks](#Benchmarks).
-
-
+Despite, uWebSockets offers promising performance dividends for existing Express apps. For specific performance results, please check the [Benchmarks](#Benchmarks).
 
 ### How to use
 
@@ -326,14 +338,14 @@ However, uWebSockets offers promising performance dividends that can be reaped i
 'use strict'
 
 // preliminary testing done with uWS 17.5.0, but it is NOT covered with tests yet
-const low = require('0http/lib/server/low') 
-/* you will need Rolando Santamaria Maso's (jkyberneees) excellent 0http. 
-	you are responsible for installing it yourself. BYOB kind of situation.
+const low = require('../index').uwsCompat
+/* Based on low library from Rolando Santamaria Maso's (jkyberneees) excellent 0http. 
+  However, many aspects of the library had to be reworked to make it more compatible with native node.js HTTP module. It is likely that the uwsCompat module could be made more efficient.
 */
 const app = require('../index')({
   prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish
   server: low(),
-  serverType: 'uWebSocket' // also required, or there will always be errors
+  serverType: 'uWebSockets' // also required, or there will always be errors
 })
 
 app.get('/hi', (req, res) => {
@@ -344,9 +356,18 @@ app.start(3001, (socket) => {
   if (socket) {
     console.log('HTTP server running at http://localhost:3001')
   }
-}) // please be aware that you need to start the server with uWS that way. That's a limitation of 0http/lib/server/low
+}) // in Fyrejet 1.x, you needed to provide a callback for this to work. This is no longer the case.
+
+setTimeout(() => {server.close()}, 10000) // closes server in approximately 10 seconds
 
 ```
+
+### Known problems
+
+At this time, there are 2 known problems with uWebSockets.js implementation used in Fyrejet.
+
+* uWebSockets.js is unable to pass `test/app.listen.js`, because `server.close()` works a bit differently. **SEVERITY:** Low
+* uWebSockets.js passes the last test (see `test/acceptance/web-service.js`), but ends up with segmentation failure upon attempt to close server. **SEVERITY:** Low-Medium?
 
 ## Benchmarks
 
@@ -376,17 +397,27 @@ Second-best result out of a series of 5 is used.
 
 Results:
 
-1) 26015.02 req/s (95.5% faster than express)
+1) 24536.90 req/s (76.1% faster than express)
 
-2) 31900.48 req/s (139.8% faster than express)
+2) 32633.49 req/s (134.3% faster than express)
 
-3) 20473.71 req/s (53.9% faster than express)
+3) 21125.14 req/s (51.7% faster than express)
 
-4) 18401.97 req/s (38.3% faster than express)
+4) 18994.90 req/s (36.4% faster than express)
 
-5) 13301.73 req/s (baseline)
+5) 13929.94 req/s (baseline)
 
 
 
 Be aware that uWS generally doesn't perform on MacOS as well as on Linux.
+
+
+
+## Run tests
+
+```
+npm install
+npm run test
+npm run test-uWS
+```
 

@@ -1,11 +1,12 @@
 {
   "name": "fyrejet",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "Web Framework for node.js that strives to provide (almost) perfect compatibility with Express, while providing better performance, where you need it.",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
     "test": "mocha --require test/support/env --reporter spec --bail --check-leaks test/ test/acceptance/",
+    "test-uWS": "UWS_SERVER_ENABLED_FOR_TEST=TRUE mocha --require test/support/env --reporter spec --bail --check-leaks test test/acceptance/",
     "postinstall": "node ./lib/tasks/postinstall.js"
   },
   "repository": {
@@ -71,7 +72,6 @@
     "vary": "~1.1.2"
   },
   "devDependencies": {
-    "standard": "^14.3.4",
     "0http": "^2.5.2",
     "after": "0.8.2",
     "connect-redis": "3.4.2",
@@ -90,8 +90,9 @@
     "pbkdf2-password": "1.2.1",
     "restana": "^4.7.3",
     "should": "13.2.3",
+    "standard": "^14.3.4",
     "supertest": "4.0.2",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v17.5.0",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.5.0",
     "vhost": "~3.0.2"
   },
   "eslintConfig": {
