@@ -79,6 +79,7 @@ var appCore = function (options, server, app) {
       return true
     },
     handle: function handle (req, res, step) {
+      res.__serverType = options.serverType
       res.defaultErrHandler = finalhandler(req, res, {
         env: this.get('env'),
         onerror: logerror.bind(this)
