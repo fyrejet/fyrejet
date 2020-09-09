@@ -411,3 +411,13 @@ Results:
 
 Be aware that uWS generally doesn't perform on MacOS as well as on Linux.
 
+
+
+## Run tests
+
+```
+npm install
+npm run test
+npm run test-uWS
+```
+
