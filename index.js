@@ -23,6 +23,7 @@ const { logerror } = require('./lib/utils')
 var appCore = function (options, server, app) {
   const startFn = (...args) => {
     if (!args || !args.length) args = [3000]
+    
     if (options.serverType === "uWebSockets") {
       var __address = {}
       server.__address = __address
@@ -73,7 +74,10 @@ var appCore = function (options, server, app) {
     getRouter () {
       return this.getRouter()
     },
-
+    uWebSockets: function() {
+      if (server.keepAliveTimeout) return false
+      return true
+    },
     handle: function handle (req, res, step) {
       res.defaultErrHandler = finalhandler(req, res, {
         env: this.get('env'),
@@ -102,12 +106,9 @@ var appCore = function (options, server, app) {
       } 
       return server.__address
     },
-    close: () => new Promise((resolve, reject) => {
-      server.close((err) => {
-        if (err) reject(err)
-        resolve()
-      })
-    })
+    close: (cb) => {
+      return server.close(cb)
+    }
   }
 
   return core

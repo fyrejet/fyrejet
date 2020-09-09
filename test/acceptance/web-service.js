@@ -95,11 +95,14 @@ describe('web-service', function () {
   })
 
   describe('when requesting an invalid route', function () {
+    
     it('should respond with 404 json', function (done) {
+      console.log(app.close.toString())
       request(app)
         .get('/api/something?api-key=bar')
         .expect('Content-Type', /json/)
-        .expect(404, '{"error":"Lame, can\'t find that"}', done)
+        .expect(404, '{"error":"Lame, can\'t find that"}', app.close)
+      done()
     })
   })
 })
