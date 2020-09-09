@@ -333,7 +333,7 @@ const low = require('../index').uwsCompat
 const app = require('../index')({
   prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish
   server: low(),
-  serverType: 'uWebSocket' // also required, or there will always be errors
+  serverType: 'uWebSockets' // also required, or there will always be errors
 })
 
 app.get('/hi', (req, res) => {

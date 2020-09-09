@@ -13,18 +13,44 @@ var res = require('./lib/response')
 var bodyParser = require('body-parser')
 var finalhandler = require('finalhandler')
 var mixin = require('merge-descriptors')
+var uwsCompat = require('./lib/uwsCompat')
 
 const requestRouter = require('./lib/routing/request-router')
 
 var initMiddleware = require('./lib/middleware/init')
 const { logerror } = require('./lib/utils')
 
-var appCore = function (options, server, mounted) {
-
+var appCore = function (options, server, app) {
   const startFn = (...args) => {
     if (!args || !args.length) args = [3000]
-    if (options.serverType === "uWebSocket" && args.length === 1) {
-      args.push(() => {}) // stub function
+    if (options.serverType === "uWebSockets") {
+      var __address = {}
+      server.__address = __address
+      if (typeof args[args.length - 1] !== 'function')  {
+        args.push((socket) => {
+          // stub function
+        })
+      }
+      var ipFamily = app.get('ipFamily')
+      if (ipFamily !== 'IPv6' && ipFamily !== 'IPv4') ipFamily = 'IPv6'
+      
+      switch (args.length >= 3) {
+        case true:
+          server.__address.address = args[0]
+          server.__address.port = args[1]
+          server.__address.family = ipFamily
+          break;
+        case false:
+          server.__address.port = args[0]
+          server.__address.family = ipFamily
+          if (ipFamily === 'IPv6') server.__address.address = '::'
+          else server.__address.address = '127.0.0.1'
+          break
+      }
+      server.address = () => {
+        
+        return __address
+      }
     }
     server.listen(...args)
     return server
@@ -71,8 +97,10 @@ var appCore = function (options, server, mounted) {
     start: startFn,
     listen: startFn,
     address: function () {
-      const addr = server.address()
-      return addr
+      if (server.address && typeof server.address === 'function') {
+        return server.address()
+      } 
+      return server.__address
     },
     close: () => new Promise((resolve, reject) => {
       server.close((err) => {
@@ -82,53 +110,6 @@ var appCore = function (options, server, mounted) {
     })
   }
 
-  if (options.serverType === 'uWebSocket') {
-
-    req.listeners = function () {
-      return []
-    }
-    req.resume = function () {
-      return this;
-    }
-    req.socket = {
-      destroy: function() {
-        return
-      }
-    }
-
-    res.serverType = 'uWebSocket'
-    let oldCoreHandle = core.handle
-    core.handle = function(req,res,step) {
-      req.body = {};
-      mixin(req, EventEmitter.prototype)
-      mixin(res, EventEmitter.prototype)
-      req.on('newListener', (event, listener) => {
-
-        if (event === 'end' && !req.bodyParsingDone) {
-          let timer
-          function checkParsed() {
-            if (req.rUWS_internal.bodyParsed) {
-
-              req.bodyParsingDone = true
-
-              req.emit('data', req.rUWS_internal.body)
-              req.once('end', listener) 
-              req.emit('end')
-              req.emit('close')
-              if (timer) return clearInterval(timer)
-              return
-            }
-            else if (!timer) {
-              timer = setInterval(checkParsed, 250)
-            }
-          }
-          checkParsed()
-        }
-      });
-      return oldCoreHandle.apply(this, [req,res,step])
-    }
-    
-  }
   return core
 }
 
@@ -140,6 +121,11 @@ var defaultErrorHandler = (err, req, res) => {
 
 function createApplication (options = {}) {
   options.errorHandler = options.errorHandler || defaultErrorHandler
+  if (options.serverType === 'uWebSocket' || process.env.UWS_SERVER_ENABLED_FOR_TEST === 'TRUE') {
+    options.serverType = 'uWebSockets'
+    options.prioRequestsProcessing = false
+    options.server = uwsCompat()
+  }
 
   var server = options.server || require('http').createServer()
 
@@ -165,9 +151,10 @@ function createApplication (options = {}) {
     app.handle(req, res, next)
   }
 
-  mixin(app, appCore(options, server))
-  mixin(app, EventEmitter.prototype)
   mixin(app, proto)
+  mixin(app, appCore(options, server, app))
+  mixin(app, EventEmitter.prototype)
+  
 
   app.request = Object.assign({}, req)
 
@@ -246,7 +233,7 @@ exports.response = res
 // exports.Route = Route;
 exports.Router = require('./lib/routing/request-router-constructor')
 
-exports.uwsCompat = require('./lib/uwsCompat')
+exports.uwsCompat = uwsCompat
 
 /**
  * Replace Express removed middleware with an appropriate error message. We are not express, but we will imitate it precisely

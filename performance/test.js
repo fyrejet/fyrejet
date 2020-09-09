@@ -1,22 +1,22 @@
-var express = require('../')
+'use strict'
 
-const low = require('../').uwsCompat // you will need Rolando Santamaria Maso's (jkyberneees) excellent 0http
-var app = express({
-	prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish
-	server: low(),
-	serverType: 'uWebSocket'
+// preliminary testing done with uWS 17.5.0, but it is NOT covered with tests yet
+var fyrejet = require('../')
+const low = fyrejet.uwsCompat // you will need Rolando Santamaria Maso's (jkyberneees) excellent 0http
+const app = fyrejet({
+  prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish
+  server: low(),
+  serverType: 'uWebSockets'
 })
 
-app.use(express.json())
+app.use(fyrejet.json())
 
-app.use(function (err, req, res, next) {
-  res.status(err.status || 500)
-  res.send(String(err[req.headers['x-error-property'] || 'message']))
-})
-app.post('/', function (req, res) {
-  res.json(req.body)
+app.all('/', (req, res) => {
+  res.send(req.body)
 })
 
-app.start(3004, ()=>{
-	console.log('running')
+var server = app.start(9999, (socket) => {
+  if (socket) {
+    console.log('HTTP server running at http://localhost:9999')
+  }
 })
