@@ -10,7 +10,9 @@ Fyrejet is a web-framework that is designed for speed and ease-of-use. After wor
 
 Unfortunately, that comes at a cost. While Express brings the speed of development, its performance is just okay-ish. Other frameworks either provide different APIs, are incompatible with Express middlewares or provide less functionality. For instance, Restana, a great API-oriented framework by jkybernees provides incredible performance, but only a subset of Express APIs, making it not suitable as an Express replacement.
 
-Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to be faster than Express, while providing most of the original Express API. In fact, Fyrejet uses slightly modified<sup>[1](#footnote1)</sup> Express automated unit tests to verify the codebase. Additionally, Fyrejet is flexible enough to offer you additional abilities to increase your route performance, such as disabling Express API for certain routes or for the whole project. You choose.
+Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to be faster than Express, while providing most of the original Express API. In fact, Fyrejet uses slightly modified<sup>[1](#footnote1)</sup> Express automated unit tests to verify the codebase. Moreover, Fyrejet offers you to use Express APIs with uWebSockets.js, enabling even greater performance at the cost of minor incompatibilities.
+
+Finally, Fyrejet is flexible enough to offer you additional abilities to increase your route performance, such as disabling Express API for certain routes or for the whole project. You choose.
 
 
 
@@ -49,6 +51,8 @@ Fyrejet is shared with the community under MIT License.
 ## Breaking changes from `1.x` to `2.0`
 
 * `uWebSockets.js` compatibility implementation has been rewritten from scratch and it no longer relies on 0http's `low` library, at least until it has the same improvements as we do have. Moreover, the tests are now shared between `Fyrejet` and `Fyrejet + uWebSockets.js`. As such, certain dirty hacks are no longer used, which means that projects using `Fyrejet 1.x` and uWebSockets can be slightly incompatible with `Fyrejet 2`. Thus, according to Semantic Versioning, it has to versioned as `Fyrejet 2`.
+* When using `uWebSockets.js`, `serverType` has to be `uWebSockets` and not `uWebSocket`, as the former is a more correct project name. `uWebSocket` will be silently changed into `uWebSockets`. Next release will show deprecation messages.
+* That's it :)
 
 
 
