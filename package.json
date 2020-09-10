@@ -1,6 +1,6 @@
 {
   "name": "fyrejet",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Web Framework for node.js that strives to provide (almost) perfect compatibility with Express, while providing better performance, where you need it.",
   "main": "index.js",
   "scripts": {
@@ -16,6 +16,8 @@
   "keywords": [
     "express-like",
     "express",
+    "connect",
+    "uWebSockets.js",
     "http",
     "framework"
   ],
