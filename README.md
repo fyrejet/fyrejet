@@ -385,7 +385,7 @@ It is a pseudo-scientific benchmark, but whatevs :)
 
 Each app exposes the `/hi` route, using the `GET` method
 
-Hardware used: `MacBook Pro (16-inch, 2019)` || `2.4 GHz 8-Core Intel Core i9`  || `64 GB 2667 MHz DDR4`
+Hardware used: `MacBook Pro (16-inch, 2019)` || `Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz`  || `64 GB 2667 MHz DDR4`
 
 OS used: `macOS Catalina 10.15.6`
 
@@ -397,15 +397,15 @@ Second-best result out of a series of 5 is used.
 
 Results:
 
-1) 24536.90 req/s (76.1% faster than express)
+1) 25738.07 req/s (85.7% faster than express)
 
-2) 32633.49 req/s (134.3% faster than express)
+2) 34101.83 req/s (146.1% faster than express)
 
-3) 21125.14 req/s (51.7% faster than express)
+3) 23141.63 req/s (66.9% faster than express)
 
-4) 18994.90 req/s (36.4% faster than express)
+4) 21471.72 req/s (53.6% faster than express)
 
-5) 13929.94 req/s (baseline)
+5) 13857.42 req/s (baseline)
 
 
 
