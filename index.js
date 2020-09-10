@@ -23,24 +23,24 @@ const { logerror } = require('./lib/utils')
 var appCore = function (options, server, app) {
   const startFn = (...args) => {
     if (!args || !args.length) args = [3000]
-    
-    if (options.serverType === "uWebSockets") {
+
+    if (options.serverType === 'uWebSockets') {
       var __address = {}
       server.__address = __address
-      if (typeof args[args.length - 1] !== 'function')  {
+      if (typeof args[args.length - 1] !== 'function') {
         args.push((socket) => {
           // stub function
         })
       }
       var ipFamily = app.get('ipFamily')
       if (ipFamily !== 'IPv6' && ipFamily !== 'IPv4') ipFamily = 'IPv6'
-      
+
       switch (args.length >= 3) {
         case true:
           server.__address.address = args[0]
           server.__address.port = args[1]
           server.__address.family = ipFamily
-          break;
+          break
         case false:
           server.__address.port = args[0]
           server.__address.family = ipFamily
@@ -49,7 +49,6 @@ var appCore = function (options, server, app) {
           break
       }
       server.address = () => {
-        
         return __address
       }
     }
@@ -74,7 +73,7 @@ var appCore = function (options, server, app) {
     getRouter () {
       return this.getRouter()
     },
-    uWebSockets: function() {
+    uWebSockets: function () {
       if (server.keepAliveTimeout) return false
       return true
     },
@@ -104,7 +103,7 @@ var appCore = function (options, server, app) {
     address: function () {
       if (server.address && typeof server.address === 'function') {
         return server.address()
-      } 
+      }
       return server.__address
     },
     close: (cb) => {
@@ -156,7 +155,6 @@ function createApplication (options = {}) {
   mixin(app, proto)
   mixin(app, appCore(options, server, app))
   mixin(app, EventEmitter.prototype)
-  
 
   app.request = Object.assign({}, req)
 
@@ -218,7 +216,6 @@ exports.raw = bodyParser.raw
 exports.static = require('./lib/additions/static.js')
 exports.text = bodyParser.text
 exports.urlencoded = bodyParser.urlencoded
-
 
 /**
  * Expose the prototypes.

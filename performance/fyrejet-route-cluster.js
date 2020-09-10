@@ -3,14 +3,11 @@
 var cluster = require('cluster')
 
 if (cluster.isMaster) {
-  //const numCPUs = require('os').cpus().length;
-  const numCPUs = 8;
-	for (let i = 0; i < numCPUs; i++) {
-		cluster.fork();
-	}
-}
-else {
-
+  const numCPUs = require('os').cpus().length
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork()
+  }
+} else {
   var express = require('../index')
 
   var app = express()
@@ -20,5 +17,4 @@ else {
   })
 
   app.listen(4004)
-
 }
