@@ -23,10 +23,10 @@ const { logerror } = require('./lib/utils')
 var appCore = function (options, server, app) {
   const startFn = (...args) => {
     if (!args || !args.length) args = [3000]
-
     if (options.serverType === 'uWebSockets') {
       var __address = {}
       server.__address = __address
+      server.serverType = options.serverType
       if (typeof args[args.length - 1] !== 'function') {
         args.push((socket) => {
           // stub function
@@ -83,19 +83,16 @@ var appCore = function (options, server, app) {
         env: this.get('env'),
         onerror: logerror.bind(this)
       })
-      if (!this.mounted && !req.rData_internal) {
-        if (this.enabled('x-powered-by')) res.setHeader('X-Powered-By', 'Fyrejet')
+      
+      if (this.enabled('x-powered-by')) res.setHeader('X-Powered-By', 'Fyrejet')
 
-        req.app = this
-        res.app = req.app
-        req.res = res
-        res.req = req
-      }
-      try {
-        this.getRouter().lookup(req, res, step)
-      } catch (e) {
-        return res.defaultErrHandler(e)
-      }
+      req.app = this
+      res.app = req.app
+      req.res = res
+      res.req = req
+      
+      return this.getRouter().lookup(req, res, step)
+      
     },
 
     start: startFn,
@@ -142,6 +139,7 @@ function createApplication (options = {}) {
     server.on('request', (req, res) => {
       setImmediate(() => app.handle(req, res))
     })
+    // this may be counterintuitive to you, but this is faster, since it allows to skip some phases in the event pool. This is prioritized.
   } else {
     server.on('request', (req, res) => {
       app.handle(req, res)

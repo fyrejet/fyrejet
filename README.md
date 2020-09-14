@@ -274,6 +274,61 @@ app.get('/hi', (req, res, next) => {
 }, 'api')
 ```
 
+
+
+#### Using Express functions in API mode
+
+API mode does not fully disable Express functions and properties, they are still stored and can be made available yet again. This may be useful, if you do not know yet at the start of routing, whether you will need Express's functionality.
+
+Each request's `req` and `res` is extended with a copy of the Fyrejet function, available as `req.app` and `res.app` respectively. This function also has many attached objects and other functions, such as `app.request` and `app.response`.
+
+Starting with v2.1.0, you can do the following:
+
+```js
+app.get('/hi', (req, res, next) => {
+  req.activateExpress()
+  return res.send(req.hostname)
+}, 'api')
+```
+
+
+
+This will, however, lead to the same performance penalties the normal routing mode leads to, albeit at a later stage, when you are certain you need Express functionality.
+
+
+
+Alternatively, in order to call an Express function you'd need to follow this example (**NOT FULLY TESTED**): 
+
+```js
+app.get('/hi', (req, res, next) => {
+  
+  Object.keys(req.app.response).forEach(key => {
+     res[key] = req.app.response[key]
+  }) // at this point all res functions are available. Doesn't mean they work properly ;)
+  Object.keys(req.app.request).forEach(key => {
+    req[key] = req.app.request[key]
+  }) // at this point all res FUNCTIONS are available. Doesn't mean they work properly ;)
+  
+  req.propFn = req.app.request.propFn // this is NOT just for convenience at this point.
+  
+  // to access, say, req.hostname, we would then do the following:
+  
+  let hostname = req.propFn.hostname.apply(req)
+  
+  return res.send(hostname) // localhost. This is express's res.send here
+  
+  // if you need to use API mode's default res.send (from Restana), you can:
+  // res.send = res.sendLite
+  
+}, 'api')
+```
+
+
+
+This is *somewhat* like the Properties as Functions mode. However, this is **NOT FULLY** tested, **NOR OFFICIALLY SUPPORTED**.
+
+
+
 #### Caveats
 
 There are two caveats that have to be noted:
@@ -393,23 +448,46 @@ uname -a output: `Darwin device.local 19.6.0 Darwin Kernel Version 19.6.0: Thu J
 
 Testing is done with `wrk` using this command: `wrk -t8 -c64 -d5s 'http://localhost:3001/hi'`, where `3001` is changed to required port.
 
-Second-best result out of a series of 5 is used.
+Second-best result out of a series of 5 is used. 
 
 Results:
 
-1) 25738.07 req/s (85.7% faster than express)
+1) 26002.70 req/s (85.9% faster than express)
 
-2) 34101.83 req/s (146.1% faster than express)
+2) 34942.53 req/s (149.8% faster than express)
 
-3) 23141.63 req/s (66.9% faster than express)
+3) 24919.97 req/s (78.1% faster than express)
 
-4) 21471.72 req/s (53.6% faster than express)
+4) 22792.33 req/s (62.9% faster than express)
 
-5) 13857.42 req/s (baseline)
+5) 13989.85 req/s (baseline)
 
+The CPU package temperature was ensured to be 45-47 degrees Celsium at the start of each round.
 
+### Clustering
 
-Be aware that uWS generally doesn't perform on MacOS as well as on Linux.
+Be aware that `uWebSockets.js` generally doesn't perform on MacOS and FreeBSD as well as on Linux. It also does not clusterize on non-Linux platforms, [as it depends on certain kernel features](https://github.com/uNetworking/uWebSockets.js/issues/214#issuecomment-547589050). This only affects `uWebSockets.js` (and, by extenstion, `fyrejet.uwsCompat`). However, Fyrejet itself has no problems with Node.JS clustering, as demonstrated by the table before.
+
+```sh
+# in terminal 1 or whatever pleases your soul <3
+
+node ./performance/fyrejet-route-cluster.js 2 
+# 2 is the number of worker processes to use
+# you can also use express-route-cluster.js, which will run on port 4005
+
+# in terminal 2
+
+wrk -t8 -c64 -d5s 'http://localhost:4004/hi'
+```
+
+#### Overall results with clustering
+
+| № of workers | Express, req/s | Fyrejet, req/s | % difference in favor of Fyrejet |
+| ------------ | -------------- | -------------- | -------------------------------- |
+| 1            | 13893.07       | 22563.44       | 62.4                             |
+| 2            | 25067.27       | 40751.20       | 62.5                             |
+| 3            | 33958.38       | 56950.06       | 67.7                             |
+| 4            | 44578.20       | 72082.12       | 61.7                             |
 
 
 
@@ -421,3 +499,18 @@ npm run test
 npm run test-uWS
 ```
 
+
+
+## Donations
+
+Are welcome.
+
+Currently, you can use PayPal:
+
+https://paypal.me/schamberg97
+
+
+
+## Support
+
+In order to get support, you can file an issue in this repository. If you need commercial support, please write on schamberg.nicholas@gmail.com
