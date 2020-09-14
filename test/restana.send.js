@@ -1,0 +1,219 @@
+'use strict'
+
+/* global describe, it */
+const request = require('supertest')
+const { createReadStream, readFileSync } = require('fs')
+const path = require('path')
+const stream = require('stream')
+
+describe('All Responses', () => {
+  let server
+  const service = require('../index')()
+
+  service.get('/string', (req, res) => {
+    res.sendLite('Hello World!')
+  })
+
+  service.get('/string-override-status', (req, res) => {
+    res.statusCode = 250
+    res.sendLite('Hello World!')
+  })
+
+  service.get('/html-string', (req, res) => {
+    res.setHeader('content-type', 'text/html; charset=utf-8')
+    res.sendLite('<p>Hello World!</p>')
+  })
+
+  service.get('/buffer', (req, res) => {
+    res.sendLite(Buffer.from('Hello World!'))
+  })
+
+  service.get('/buffer-string', (req, res) => {
+    res.setHeader('content-type', 'text/plain; charset=utf-8')
+    res.sendLite(Buffer.from('Hello World!'))
+  })
+
+  service.get('/json', (req, res) => {
+    res.sendLite({ id: 'restana' })
+  })
+
+  service.get('/json-with-content-type', (req, res) => {
+    res.setHeader('content-type', 'application/json')
+    res.sendLite({ id: 'restana' })
+  })
+
+  service.get('/stream', (req, res) => {
+    res.setHeader('content-type', 'text/html; charset=utf-8')
+    res.sendLite(createReadStream(path.resolve(__dirname, './fixtures/.name'), { encoding: 'utf8' }))
+  })
+
+  service.get('/stream-octet', (req, res) => {
+    res.sendLite(
+      stream.Readable.from(
+        (async function * generateTinyStream () {
+          yield 'Hello '
+          yield 'World!'
+        })()
+      )
+    )
+  })
+
+  service.get('/promise', (req, res) => {
+    res.sendLite(Promise.resolve({ hello: 'world' }))
+  })
+
+  service.get('/promise-with-headers', (req, res) => {
+    res.setHeader('content-type', 'application/json')
+    res.setHeader('x-framework', 'restana')
+    res.sendLite(Promise.resolve({ hello: 'world' }))
+  })
+
+  service.get('/promise-rejected', (req, res) => {
+    const error = new Error('Rejected')
+    error.code = 503
+    res.setHeader('content-type', 'text/html')
+    res.sendLite(Promise.reject(error))
+  })
+
+  service.get('/invalid-body', (req, res) => {
+    if (res.__serverType === 'uWebSockets') {
+      console.log('THIS TEST IS MEANINGLESS FOR uWebSockets!')
+      res.statusCode = 500
+      res.setHeader('content-type', 'text/plain; charset=utf-8')
+      return res.sendLite()
+    }
+    res.body = true
+    res.setHeader('content-type', 'text/plain; charset=utf-8')
+    res.sendLite()
+  })
+
+  service.get('/error', (req, res) => {
+    const err = new Error('Test')
+    err.code = 501
+    res.sendLite(err)
+  })
+
+  it('should start service', async () => {
+    server = await service.start(25252)
+    console.log(server)
+  })
+
+  it('should GET 200 and string content on /string', async () => {
+    await request(server)
+      .get('/string')
+      .expect(200)
+      .expect('content-type', 'text/plain; charset=utf-8')
+      .expect('Hello World!')
+  })
+
+  it('should GET 250 and string content on /string-override-status', async () => {
+    await request(server)
+      .get('/string-override-status')
+      .expect(250)
+      .expect('content-type', 'text/plain; charset=utf-8')
+      .expect('Hello World!')
+  })
+
+  it('should GET 200 and html content on /html-string', async () => {
+    await request(server)
+      .get('/html-string')
+      .expect(200)
+      .expect('content-type', 'text/html; charset=utf-8')
+      .expect('<p>Hello World!</p>')
+  })
+
+  it('should GET 200 and buffer content on /buffer', async () => {
+    await request(server)
+      .get('/buffer')
+      .expect(200)
+      .expect('content-type', 'application/octet-stream')
+      .expect(Buffer.from('Hello World!'))
+  })
+
+  it('should GET 200 and string content on /buffer-string', async () => {
+    await request(server)
+      .get('/buffer-string')
+      .expect(200)
+      .expect('content-type', 'text/plain; charset=utf-8')
+      .expect('Hello World!')
+  })
+
+  it('should GET 200 and json content on /json', async () => {
+    await request(server)
+      .get('/json')
+      .expect(200)
+      .expect('content-type', 'application/json; charset=utf-8')
+      .expect({ id: 'restana' })
+  })
+
+  it('should GET 200 and json content on /json-with-content-type', async () => {
+    await request(server)
+      .get('/json-with-content-type')
+      .expect(200)
+      .expect('content-type', 'application/json')
+      .expect({ id: 'restana' })
+  })
+
+  it('should GET 200 and html content on /stream', async () => {
+    await request(server)
+      .get('/stream')
+      .expect(200)
+      .expect('content-type', 'text/html; charset=utf-8')
+	  .expect(readFileSync(path.resolve(__dirname, './fixtures/.name'), 'utf8'))
+	  
+  })
+
+  it('should GET 200 and buffer content on /stream-octet', async () => {
+    await request(server)
+      .get('/stream-octet')
+      .expect(200)
+      .expect('content-type', 'application/octet-stream')
+  })
+
+  it('should GET 200 and json content on /promise', async () => {
+    await request(server)
+      .get('/promise')
+      .expect(200)
+      .expect({ hello: 'world' })
+      .expect('content-type', 'application/json; charset=utf-8')
+  })
+
+  it('should GET 200 and json content on /promise-with-headers', async () => {
+    await request(server)
+      .get('/promise-with-headers')
+      .expect(200)
+      .expect({ hello: 'world' })
+      .expect('content-type', 'application/json')
+      .expect('x-framework', 'restana')
+  })
+
+  it('should GET 503 and json content on /promise-rejected', async () => {
+    await request(server)
+      .get('/promise-rejected')
+      .expect(503)
+      .expect({ code: 503, message: 'Rejected' })
+      .expect('content-type', 'application/json; charset=utf-8')
+  })
+
+
+  it('should GET 500 and buffer content on /invalid-body', async () => {
+    await request(server)
+      .get('/invalid-body')
+      .expect(500)
+  })
+
+  it('should GET 501 and json content on /error', async () => {
+    await request(server)
+      .get('/error')
+      .expect(501)
+      .expect('content-type', 'application/json; charset=utf-8')
+      .expect({
+        code: 501,
+        message: 'Test'
+      })
+  })
+
+  it('should successfully terminate the service', async () => {
+    await service.close()
+  })
+})

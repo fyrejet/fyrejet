@@ -18,6 +18,20 @@ describe('Special Routing Mode', function () {
     		    .get('/')
     		    .expect('undefined', done)
 			})
+			it('re-enabling Express additions should work', function (done) {
+				var app = express()
+			  	app.set('fyrejet mode', 'api')
+				  
+				app.get('/express/', function(req,res) {
+					req.activateExpress()
+					let resJsonType = typeof res.json
+					res.send(resJsonType)
+				})
+				
+			  request(app)
+    		    .get('/express')
+    		    .expect('function', done)
+			})
 			it('should also work in nested router', function (done) {
 				var app = express()
 				var app2 = express.Router()
@@ -38,6 +52,27 @@ describe('Special Routing Mode', function () {
 				  .get('/nested/')
 				  .expect('undefined', done)
 			})
+			it('re-enabling Express additions should also work in nested router', function (done) {
+				var app = express()
+				var app2 = express.Router()
+				app.set('fyrejet mode', 'api')
+				  
+				app.get('*', (req,res, next) => {
+					next()
+				})
+				  
+				app2.get('/', function(req,res) {
+					req.activateExpress()
+					let resJsonType = typeof res.json
+					res.send(resJsonType)
+				})
+
+				app.use('/nested', app2)
+				
+			  	request(app)
+    		    	.get('/nested')
+    		    	.expect('function', done)
+			})
 			it('should also work in mounted full instance of fyrejet', function (done) {
 				var app = express()
 				var app2 = express()
@@ -53,6 +88,25 @@ describe('Special Routing Mode', function () {
 				request(app)
 				  .get('/mounted/')
 				  .expect('undefined', done)
+			})
+
+			it('re-enabling Express additions should also work in mounted full instance of fyrejet', function (done) {
+				var app = express()
+				var app2 = express()
+				app.set('fyrejet mode', 'api')
+				  
+				app2.get('/', function(req,res) {
+					req.activateExpress()
+					let resJsonType = typeof res.json
+					res.send(resJsonType)
+				})
+
+				app.use('/mounted', app2)
+				
+			  	request(app)
+    		    	.get('/mounted/')
+					.expect('function', done)
+					
 			})
 		})
 		describe('Route-only API Mode', function () {
@@ -117,6 +171,18 @@ describe('Special Routing Mode', function () {
 				.set('Host', 'example.com')
         		.expect('example.com', done)
 			})
+			it('req.propFn should be available', function (done) {
+				var app = express()
+				app.set('fyrejet mode', 'properties as functions')
+  
+				app.get('/', function (req, res) {
+				  res.end(req.propFn.protocol.apply(req))
+				})
+  
+				request(app)
+				  .get('/')
+				  .expect('http', done)
+			})
 			it('should also work in nested router', function (done) {
 				var app = express()
 				app.set('fyrejet mode', 'properties as functions')
@@ -133,6 +199,22 @@ describe('Special Routing Mode', function () {
 					.set('Host', 'example.com')
         			.expect('example.com', done)
 			})
+			it('req.propFn should be available in nested router', function (done) {
+				var app = express()
+				app.set('fyrejet mode', 'properties as functions')
+  
+				var app2 = express.Router()
+
+				app2.get('/', function (req, res) {
+					res.end(req.propFn.protocol.apply(req))
+				})
+
+				app.use('/nested', app2)
+  
+				request(app)
+				  .get('/nested/')
+				  .expect('http', done)
+			})
 			it('should also work in mounted full instance of fyrejet', function (done) {
 				var app = express()
 				var app2 = express()
@@ -148,6 +230,22 @@ describe('Special Routing Mode', function () {
 				  .get('/mounted/')
 				  .set('Host', 'example.com')
         		  .expect('example.com', done)
+			})
+			it('req.propFn should be available in mounted full instance of fyrejet', function (done) {
+				var app = express()
+				var app2 = express()
+				app.set('fyrejet mode', 'properties as functions')
+  
+				app2.get('/', function (req, res) {
+					res.end(req.propFn.protocol.apply(req))
+				})
+
+				app.use('/mounted', app2)
+  
+				request(app)
+				  .get('/mounted/')
+				  .set('Host', 'example.com')
+        		  .expect('http', done)
 			})
 		})
 		describe('Route-only API Mode', function () {
