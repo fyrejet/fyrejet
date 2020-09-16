@@ -13,7 +13,7 @@ var res = require('./lib/response')
 var bodyParser = require('body-parser')
 var finalhandler = require('finalhandler')
 var mixin = require('merge-descriptors')
-var uwsCompat = require('./lib/uwsCompat')
+var uwsCompat = require('./lib/additions/uwsCompat')
 
 const requestRouter = require('./lib/routing/request-router')
 
