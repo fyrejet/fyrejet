@@ -12,7 +12,6 @@ var req = require('./lib/request')
 var res = require('./lib/response')
 var bodyParser = require('body-parser')
 var finalhandler = require('finalhandler')
-var mixin = require('merge-descriptors')
 var uwsCompat = require('./lib/additions/uwsCompat')
 
 const requestRouter = require('./lib/routing/request-router')
@@ -150,9 +149,9 @@ function createApplication (options = {}) {
     app.handle(req, res, next)
   }
 
-  mixin(app, proto)
-  mixin(app, appCore(options, server, app))
-  mixin(app, EventEmitter.prototype)
+  Object.assign(app, proto)
+  Object.assign(app, appCore(options, server, app))
+  Object.assign(app, EventEmitter.prototype)
 
   app.request = Object.assign({}, req)
 
