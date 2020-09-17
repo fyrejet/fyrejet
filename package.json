@@ -45,7 +45,7 @@
     "content-type": "~1.0.4",
     "cookie": "^0.4.1",
     "debug": "^4.1.1",
-    "depd": "~1.1.2",
+    "depd": "^2.0.0",
     "encodeurl": "~1.0.2",
     "escape-html": "~1.0.3",
     "etag": "~1.8.1",
