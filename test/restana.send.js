@@ -95,7 +95,6 @@ describe('All Responses', () => {
 
   it('should start service', async () => {
     server = await service.start(25252)
-    console.log(server)
   })
 
   it('should GET 200 and string content on /string', async () => {
