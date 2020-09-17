@@ -452,15 +452,15 @@ Second-best result out of a series of 5 is used.
 
 Results:
 
-1) 26002.70 req/s (85.9% faster than express)
+1) 26626.78 req/s (89.9% faster than express)
 
-2) 34942.53 req/s (149.8% faster than express)
+2) 35585.70 req/s (153.5% faster than express)
 
-3) 24919.97 req/s (78.1% faster than express)
+3) 25247.30 req/s (80.0% faster than express)
 
-4) 22792.33 req/s (62.9% faster than express)
+4) 23573.40 req/s (68.1% faster than express)
 
-5) 13989.85 req/s (baseline)
+5) 14021.54 req/s (baseline)
 
 The CPU package temperature was ensured to be 45-47 degrees Celsium at the start of each round.
 
