@@ -1,6 +1,6 @@
 {
   "name": "fyrejet",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Web Framework for node.js that strives to provide (almost) perfect compatibility with Express, while providing better performance, where you need it.",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "framework"
   ],
   "engines": {
-    "node": ">=10.x"
+    "node": ">=12.x"
   },
   "author": "Nicholas Schamberg <schamberg.nicholas@gmail.com>",
   "license": "MIT",
