@@ -100,8 +100,11 @@ describe('web-service', function () {
       request(app)
         .get('/api/something?api-key=bar')
         .expect('Content-Type', /json/)
-        .expect(404, '{"error":"Lame, can\'t find that"}', app.close)
-      done()
+        .expect(404, '{"error":"Lame, can\'t find that"}', () => {
+
+          done()
+          return app.close()
+        })
     })
   })
 })
