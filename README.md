@@ -16,6 +16,10 @@ Finally, Fyrejet is flexible enough to offer you additional abilities to increas
 
 
 
+Starting with Fyrejet 2.2.x, Fyrejet is only compatible with Node.js 12 and higher.
+
+
+
 <a name="footnote1">[1]</a>: 
 
 * `50` tests removed, because they are arguably irrelevant (`test/Route.js` and `test/Router.js`)
