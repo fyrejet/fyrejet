@@ -22,7 +22,7 @@
     "framework"
   ],
   "engines": {
-    "node": ">=10.x"
+    "node": ">=12.x"
   },
   "author": "Nicholas Schamberg <schamberg.nicholas@gmail.com>",
   "license": "MIT",
