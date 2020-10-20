@@ -12,7 +12,7 @@ var req = require('./lib/request')
 var res = require('./lib/response')
 var bodyParser = require('body-parser')
 var finalhandler = require('finalhandler')
-var uwsCompat = require('./lib/additions/uwsCompat')
+var uwsCompat = require('low-http-server')
 
 const requestRouter = require('./lib/routing/request-router')
 

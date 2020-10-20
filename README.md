@@ -50,7 +50,7 @@ Fyrejet is shared with the community under MIT License.
 
 ## Breaking changes from `1.x` to `2.0`
 
-* `uWebSockets.js` compatibility implementation has been rewritten from scratch and it no longer relies on 0http's `low` library, at least until it has the same improvements as we do have. Moreover, the tests are now shared between `Fyrejet` and `Fyrejet + uWebSockets.js`. As such, certain dirty hacks are no longer used, which means that projects using `Fyrejet 1.x` and uWebSockets can be slightly incompatible with `Fyrejet 2`. Thus, according to Semantic Versioning, it has to versioned as `Fyrejet 2`.
+* `uWebSockets.js` compatibility implementation has been rewritten from scratch and it no longer relies on 0http's `low` library, at least until it has the same improvements as we do have. Moreover, the tests are now shared between `Fyrejet` and `Fyrejet + uWebSockets.js`. As such, certain dirty hacks are no longer used, which means that projects using `Fyrejet 1.x` and uWebSockets can be slightly incompatible with `Fyrejet 2`. Thus, according to Semantic Versioning, it has to be versioned as `Fyrejet 2`.
 * When using `uWebSockets.js`, `serverType` has to be `uWebSockets` and not `uWebSocket`, as the former is a more correct project name. `uWebSocket` will be silently changed into `uWebSockets`. Next release will show deprecation messages.
 * That's it :)
 
@@ -381,11 +381,17 @@ No known caveats yet.
 
 ## uWebSockets
 
-Fyrejet includes BETA support for uWebSockets.
+Fyrejet includes support for uWebSockets.
 
 Versions 17.5.0 and 18.5.0 have been tested and do seem to work. Despite this, minor incompatibilities are expected. Please refer to Known problems section.
 
 Despite, uWebSockets offers promising performance dividends for existing Express apps. For specific performance results, please check the [Benchmarks](#Benchmarks).
+
+
+
+ Versions 2.0-2.1.1 included their own internal fork of [jkybernees's `0http 2.x` `low` server](https://github.com/jkyberneees/0http/blob/v2/lib/server/low.js). Since then, it was forked into a separate project, [`low-http-server`](https://github.com/jkyberneees/low-http-server). [Fyrejet's changes were committed to that project](https://github.com/jkyberneees/low-http-server/pull/7) and low-http-server is deemed mostly production ready. Thus, from version 2.2.0, Fyrejet will use `low-http-server` instead of its own uWebSockets compatibility layer. This should not impact any existing Fyrejet apps, since both implementations are compatible and are very similar. However, this should mean additional features, [like SSL](https://github.com/jkyberneees/low-http-server/pull/6).
+
+
 
 ### How to use
 
@@ -394,12 +400,11 @@ Despite, uWebSockets offers promising performance dividends for existing Express
 
 // preliminary testing done with uWS 17.5.0, but it is NOT covered with tests yet
 const low = require('../index').uwsCompat
-/* Based on low library from Rolando Santamaria Maso's (jkyberneees) excellent 0http. 
-  However, many aspects of the library had to be reworked to make it more compatible with native node.js HTTP module. It is likely that the uwsCompat module could be made more efficient.
+/* Uses jkybernees's and schamberg97's low-http-server
 */
 const app = require('../index')({
-  prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish
-  server: low(),
+  prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish. However, this will reduce speed for node's native http
+  server: low(), // You can pass options to low(), check low-http-server documentation
   serverType: 'uWebSockets' // also required, or there will always be errors
 })
 

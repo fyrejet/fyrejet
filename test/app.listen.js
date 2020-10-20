@@ -5,7 +5,7 @@ describe('app.listen()', function () {
   it('should wrap with an HTTP server', function (done) {
     if (process.env.UWS_SERVER_ENABLED_FOR_TEST === 'TRUE') {
       console.log('\x1b[31m%s\x1b[0m', 'Fyrejet (on uWS) doesn\'t conform to Express API here')
-      done()
+      return done()
     }
     var app = express()
     app.del('/tobi', function (req, res) {
