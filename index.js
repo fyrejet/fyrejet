@@ -12,7 +12,6 @@ var req = require('./lib/request')
 var res = require('./lib/response')
 var bodyParser = require('body-parser')
 var finalhandler = require('finalhandler')
-var uwsCompat = require('low-http-server')
 
 const requestRouter = require('./lib/routing/request-router')
 
@@ -118,10 +117,10 @@ var defaultErrorHandler = (err, req, res) => {
 
 function createApplication (options = {}) {
   options.errorHandler = options.errorHandler || defaultErrorHandler
-  if (options.serverType === 'uWebSocket' || process.env.UWS_SERVER_ENABLED_FOR_TEST === 'TRUE') {
+  if (options.serverType === 'uWebSocket' || process.env.UWS_SERVER_ENABLED_FOR_TEST === 'TRUE') { // legacy or tests
     options.serverType = 'uWebSockets'
     options.prioRequestsProcessing = false
-    options.server = uwsCompat()
+    options.server = require('low-http-server')()
   }
 
   var server = options.server || require('http').createServer()
@@ -229,7 +228,9 @@ exports.response = res
 // exports.Route = Route;
 exports.Router = require('./lib/routing/request-router-constructor')
 
-exports.uwsCompat = uwsCompat
+exports.uwsCompat = function() {
+  return require('low-http-server')
+}
 
 /**
  * Replace Express removed middleware with an appropriate error message. We are not express, but we will imitate it precisely
