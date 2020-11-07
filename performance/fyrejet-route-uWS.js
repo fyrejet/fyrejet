@@ -4,7 +4,7 @@ const fyrejet = require('../index')
 const uwsCompat = fyrejet.uwsCompat // you will need Rolando Santamaria Maso's (jkyberneees) excellent 0http
 const app = require('../index')({
   prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish
-  server: uwsCompat(),
+  server: fyrejet.uwsCompat(),
   serverType: 'uWebSockets'
 })
 
