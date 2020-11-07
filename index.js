@@ -228,9 +228,8 @@ exports.response = res
 // exports.Route = Route;
 exports.Router = require('./lib/routing/request-router-constructor')
 
-exports.uwsCompat = function() {
-  return require('low-http-server')
-}
+
+exports.uwsCompat = require('./lib/uwsCompat')
 
 /**
  * Replace Express removed middleware with an appropriate error message. We are not express, but we will imitate it precisely
