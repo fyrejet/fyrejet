@@ -4,7 +4,7 @@ var cluster = require('cluster')
 
 if (cluster.isMaster) {
   var numCPUs = require('os').cpus().length
-  if (!isNaN(parseInt(process.argv[process.argv.length - 1]) ) ) {
+  if (!isNaN(parseInt(process.argv[process.argv.length - 1]))) {
     numCPUs = parseInt(process.argv[process.argv.length - 1])
   }
   console.log('using processes: ' + numCPUs)
