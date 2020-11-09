@@ -81,16 +81,15 @@ var appCore = function (options, server, app) {
         env: this.get('env'),
         onerror: logerror.bind(this)
       })
-      
+
       if (this.enabled('x-powered-by')) res.setHeader('X-Powered-By', 'Fyrejet')
 
       req.app = this
       res.app = req.app
       req.res = res
       res.req = req
-      
+
       return this.getRouter().lookup(req, res, step)
-      
     },
 
     start: startFn,
@@ -227,7 +226,6 @@ exports.response = res
 
 // exports.Route = Route;
 exports.Router = require('./lib/routing/request-router-constructor')
-
 
 exports.uwsCompat = require('./lib/uwsCompat')
 

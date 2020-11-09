@@ -103,7 +103,7 @@ describe('web-service', function () {
         .expect(404, '{"error":"Lame, can\'t find that"}', () => {
 
           done()
-          return app.close()
+          
         })
     })
   })
