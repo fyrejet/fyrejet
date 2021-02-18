@@ -151,34 +151,14 @@ function createApplication (options = {}) {
   Object.assign(app, appCore(options, server, app))
   Object.assign(app, EventEmitter.prototype)
 
-  app.request = Object.assign({}, req)
-
-  const reqProperties = {}
-  app.reqPropertiesEssential = reqProperties
-  const reqPropertiesEssential = {}
-  app.reqPropertiesEssential = reqPropertiesEssential
-  Object.keys(app.request.propFn).forEach(name => {
-    if (name.includes('Setter')) return
-    let set
-    if (app.request.propFn[name + 'Setter']) set = app.request.propFn[name + 'Setter']
-    reqProperties[name] = {
-      configurable: true,
-      enumerable: true,
-      get: app.request.propFn[name],
-      set: set
-    }
-    if (app.request.propFn[name].essential) {
-      reqPropertiesEssential[name] = {
-        configurable: true,
-        enumerable: true,
-        get: app.request.propFn[name],
-        set: set
-      }
-    }
+  app.request = Object.create(req, {
+    app: { configurable: true, enumerable: true, writable: true, value: app }
   })
 
   // expose the prototype that will get set on responses
-  app.response = Object.assign({}, res)
+  app.response = Object.create(res, {
+    app: { configurable: true, enumerable: true, writable: true, value: app }
+  })
 
   app.handler = app.handle
   app.callback = () => app.handle
@@ -189,17 +169,15 @@ function createApplication (options = {}) {
   // Init the express-like app abilities
   app.init(options)
 
-  app.use(initMiddleware(options, reqProperties, reqPropertiesEssential, app))
+  //app.use(initMiddleware(options, reqProperties, reqPropertiesEssential, app))
+
+  app.use(initMiddleware(options, app))
 
   return app
 }
 
 exports.initMiddleware = initMiddleware
 exports.defaultErrorHandler = defaultErrorHandler // expose defaultErrorHandler for router
-
-exports.application = proto
-exports.request = req
-exports.response = res
 
 /**
  * Expose middleware
