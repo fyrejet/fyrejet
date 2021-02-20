@@ -1,6 +1,6 @@
  
 
-# Fyrejet 2
+# Fyrejet 3
 
 <img src="./fyre.png" alt="logo" height="150" width="150" />
 
@@ -8,13 +8,9 @@
 
 Fyrejet is a web-framework that is designed for speed and ease-of-use. After working with numerous frameworks, you never fail to appreciate the ease of development with Express. In fact, it is so easy that it is appropriate for novice developers to learn how to code. 
 
-Unfortunately, that comes at a cost. While Express brings the speed of development, its performance is just okay-ish. Other frameworks either provide different APIs, are incompatible with Express middlewares or provide less functionality. For instance, Restana, a great API-oriented framework by jkybernees provides incredible performance, but only a subset of Express APIs, making it not suitable as an Express replacement.
+Unfortunately, that comes at a cost. While Express brings the speed of development, its performance is just okay-ish. Other frameworks either provide different APIs, are incompatible with Express middlewares or provide less functionality. For instance, Restana, a great API-oriented framework by jkybernees provides incredible performance, but only a subset of Express APIs, making it not suitable as an Express replacement. Moreover, Express relies on `Object.setPrototypeOf` in request handling, which is inherently slow (see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf) and whose performance has drastically decreased after Node.js 12.16.0.
 
-Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to be faster than Express, while providing most of the original Express API. In fact, Fyrejet uses slightly modified<sup>[1](#footnote1)</sup> Express automated unit tests to verify the codebase. Moreover, Fyrejet offers you to use Express APIs with uWebSockets.js, enabling even greater performance at the cost of minor incompatibilities.
-
-Finally, Fyrejet is flexible enough to offer you additional abilities to increase your route performance, such as disabling Express API for certain routes or for the whole project. You choose.
-
-
+Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to be faster than Express, while providing very Express-like API. In fact, Fyrejet uses slightly modified<sup>[1](#footnote1)</sup> Express automated unit tests to verify the codebase. Moreover, Fyrejet offers you the ability to use Express APIs with uWebSockets.js (not production ready yet).
 
 Starting with Fyrejet 2.2.x, Fyrejet is only compatible with Node.js 12 and higher.
 
@@ -26,7 +22,6 @@ Starting with Fyrejet 2.2.x, Fyrejet is only compatible with Node.js 12 and high
 * `~6` tests modified to test a replacement API instead (`req.currentUrl`)
 * `1` test removed, because deprecated functionality was too much time to implement. 
 * `1091` out of `1147` Express tests are used, including aforementioned modified tests. Total number of tests used by Fyrejet: `1114`
-* Tests passed by uWebSockets.js implementation: `1113` out of `1114` (minor inconvenience at best)
 
 
 
@@ -52,11 +47,11 @@ Fyrejet is shared with the community under MIT License.
 
 
 
-## Breaking changes from `1.x` to `2.0`
+## Breaking changes from `2.x` to `3.x`
 
-* `uWebSockets.js` compatibility implementation has been rewritten from scratch and it no longer relies on 0http's `low` library, at least until it has the same improvements as we do have. Moreover, the tests are now shared between `Fyrejet` and `Fyrejet + uWebSockets.js`. As such, certain dirty hacks are no longer used, which means that projects using `Fyrejet 1.x` and uWebSockets can be slightly incompatible with `Fyrejet 2`. Thus, according to Semantic Versioning, it has to be versioned as `Fyrejet 2`.
-* When using `uWebSockets.js`, `serverType` has to be `uWebSockets` and not `uWebSocket`, as the former is a more correct project name. `uWebSocket` will be silently changed into `uWebSockets`. Next release will show deprecation messages.
-* That's it :)
+* For general performance reasons, special modes have been removed from this major version (except route-wide no etag option)
+* Fyrejet no longer implements any `req` properties from Express. The properties are now reimplemented as methods. So, for instance, to get protocol, you should use `req.protocol()` instead of `req.protocol`. While this breaks compatibility, this helps to raise performance.
+  * `req.method` and `req.url` are not affected since they are native to node.js's `http` module
 
 
 
@@ -75,13 +70,13 @@ npm run test
 
 Fyrejet API is very similar to Express API. In general, you are advised to use the current Express documentation. Having said that, there are a few important differences between these projects, that are summarized in the table below:
 
-| Capability            |   Type of difference   | Express                                                      | Fyrejet                                                      |
-| --------------------- | :--------------------: | :----------------------------------------------------------- | ------------------------------------------------------------ |
-| Routing, general      | Difference in behavior | Express goes through each route in the stack, verifying, whether it is appropriate for the request. When a request is made again, the same operation has to start all over again. | Fyrejet routing and base is basically a fork of Restana and its dependencies, 0http and Trouter. When an initial request is made, like ```GET /hi HTTP/1.1``` Fyrejet finds which routes are appropriate for the request and then caches those routes. This way, Fyrejet will be able to load only the required routes upon a similar request in the future. |
-| Routing, details      | Difference in behavior | Changing req.url or req.method only affects the routes that have not been checked yet. | Changing ```req.url``` or ```req.method``` to a different value makes Fyrejet restart the routing process for your request within Fyrejet instance. All the changes made to data (such as ```res.locals``` or ```req.params```) during routing persist. If you try to change value to the same value (e.g., if ```req.method === "POST"; req.method = "POST"```), nothing occurs. However, if you want to avoid the rerouting in other cases, you can use ```req.setUrl(url)``` and ```req.setMethod(method)```. For more information, see [Rerouting](#Rerouting). |
-| `req.url`             | Difference in behavior | req.url is modified to reflect the relative url in relation to the middleware route. | req.url does not operate this way in Fyrejet and is heavily used in in internal routing. As a replacement, you can use ```req.currentUrl```. |
-| `res.send`            | Non-breaking additions | Provided                                                     | Provided, with very slight modifications (does not affect API compatibility). Also, Fyrejet provides alternative `res.sendLite`, which is unmodified `res.send` from Restana project. It is supposed to be faster and more lightweight, but with different functionality (no ETags, for example, but it is capable of sending objects faster and setting headers directly). See Restana's [documentation on `res.send`](https://github.com/jkyberneees/restana#the-ressend-method) for information on `res.sendLite` behavior. |
-| Special routing modes | Non-breaking additions | N/A                                                          | Fyrejet has several special routing modes. Unlike Express, you can enable API-only mode (both system- and route-wide), turn most of Express `req` properties into functions (both system- and route-wide) for increased performance, as well as disable ETags for individual routes. See [Special routing modes](#srm). |
+| Capability                |   Type of difference   | Express                                                      | Fyrejet                                                      |
+| ------------------------- | :--------------------: | :----------------------------------------------------------- | ------------------------------------------------------------ |
+| Routing, general          | Difference in behavior | Express goes through each route in the stack, verifying, whether it is appropriate for the request. When a request is made again, the same operation has to start all over again. | Fyrejet routing and base is basically a fork of Restana and its dependencies, 0http and Trouter. When an initial request is made, like ```GET /hi HTTP/1.1``` Fyrejet finds which routes are appropriate for the request and then caches those routes. This way, Fyrejet will be able to load only the required routes upon a similar request in the future. |
+| Routing, details          | Difference in behavior | Changing req.url or req.method only affects the routes that have not been checked yet. | Changing ```req.url``` or ```req.method``` to a different value makes Fyrejet restart the routing process for your request within Fyrejet instance. All the changes made to data (such as ```res.locals``` or ```req.params```) during routing persist. If you try to change value to the same value (e.g., if ```req.method === "POST"; req.method = "POST"```), nothing occurs. However, if you want to avoid the rerouting in other cases, you can use ```req.setUrl(url)``` and ```req.setMethod(method)```. For more information, see [Rerouting](#Rerouting). |
+| `req.url`                 | Difference in behavior | req.url is modified to reflect the relative url in relation to the middleware route. | req.url does not operate this way in Fyrejet and is heavily used in in internal routing. As a replacement, you can use ```req.currentUrl()```. |
+| `res.send`                | Non-breaking additions | Provided                                                     | Provided, with very slight modifications (does not affect API compatibility). Also, Fyrejet provides alternative `res.sendLite`, which is unmodified `res.send` from Restana project. It is supposed to be faster and more lightweight, but with different functionality (no ETags, for example, but it is capable of sending objects faster and setting headers directly). See Restana's [documentation on `res.send`](https://github.com/jkyberneees/restana#the-ressend-method) for information on `res.sendLite` behavior. |
+| Route-wide no etag option | Non-breaking additions | N/A                                                          | Fyrejet allows you to switch off etag for a specific route.  |
 
 
 
@@ -248,130 +243,17 @@ hi, sweetheart!* Closing connection 0
 
 Sometimes, rerouting is not acceptable. In these cases, you can change the method or url with these helper functions:
 
-```req.setUrl(url)``` and ```req.setMethod(method)```. Both return req object, so they are chainable.
+```req.setUrl(url)``` and ```req.setMethod(method)```. Both return `req` object, so they are chainable with other `req` methods.
 
 
 
-## Special Routing Modes <p name='srm'></p>
-
-Fyrejet supports several additional route modes. Both offer increased performance at the cost of some sacrifices. For specific performance results, please check the [Benchmarks](#Benchmarks). This feature is considered stable, but some additional testing in 'the wild' would be appreciated.
-
-### API mode
-
-Sometimes, your app will have certain routes, where you barely use any Express functionality. In these cases, you could use Fyrejet's API mode in order to achieve better performance for these routes. In API mode, Fyrejet provides a very limited number of additional `req` properties. These are:
-
-- `req.path`
-- `req.currentUrl`
-- `req.baseUrl`
-
-Additionally, one `res` function is added, namely `res.send` (also available as `res.sendLite`).
-
-#### How to use
-
-To enable this mode, you can use two ways. The first one is to enable API mode globally for your Fyrejet instance. This can be accomplished by using `app.set('fyrejet mode', 'api')` before your routes, 
-
-Alternatively, you could enable API mode for specific routes. To do this, you could declare the route the following way:
-
-```js
-app.get('/hi', (req, res, next) => {
-  return res.send('This is an API route')
-}, 'api')
-```
-
-
-
-#### Using Express functions in API mode
-
-API mode does not fully disable Express functions and properties, they are still stored and can be made available yet again. This may be useful, if you do not know yet at the start of routing, whether you will need Express's functionality.
-
-Each request's `req` and `res` is extended with a copy of the Fyrejet function, available as `req.app` and `res.app` respectively. This function also has many attached objects and other functions, such as `app.request` and `app.response`.
-
-Starting with v2.1.0, you can do the following:
-
-```js
-app.get('/hi', (req, res, next) => {
-  req.activateExpress()
-  return res.send(req.hostname)
-}, 'api')
-```
-
-
-
-This will, however, lead to the same performance penalties the normal routing mode leads to, albeit at a later stage, when you are certain you need Express functionality.
-
-
-
-Alternatively, in order to call an Express function you'd need to follow this example (**NOT FULLY TESTED**): 
-
-```js
-app.get('/hi', (req, res, next) => {
-  
-  Object.keys(req.app.response).forEach(key => {
-     res[key] = req.app.response[key]
-  }) // at this point all res functions are available. Doesn't mean they work properly ;)
-  Object.keys(req.app.request).forEach(key => {
-    req[key] = req.app.request[key]
-  }) // at this point all res FUNCTIONS are available. Doesn't mean they work properly ;)
-  
-  req.propFn = req.app.request.propFn // this is NOT just for convenience at this point.
-  
-  // to access, say, req.hostname, we would then do the following:
-  
-  let hostname = req.propFn.hostname.apply(req)
-  
-  return res.send(hostname) // localhost. This is express's res.send here
-  
-  // if you need to use API mode's default res.send (from Restana), you can:
-  // res.send = res.sendLite
-  
-}, 'api')
-```
-
-
-
-This is *somewhat* like the Properties as Functions mode. However, this is **NOT FULLY** tested, **NOR OFFICIALLY SUPPORTED**.
-
-
-
-#### Caveats
-
-There are two caveats that have to be noted:
-
-- There must be no 'appropriate' routes that use Express functionality before your API routes, if you use the second way to enable API mode, or you will run into troubles.
-- Since the init process of nested routers and mounted Fyrejet apps depend on the parent app, global Fyrejet API mode will affect 'child' instances.
-
-### Properties-as-functions mode
-
-Properties as functions mode exists as a compromise between API mode's speed and Express compatibility. It allows you to use most of Express's `req` additions as Functions instead of properties. Some additional Express properties will be unaffected, because they are needed internally, however:
-
-* `req.path`
-* `req.currentUrl`
-* `req.baseUrl`
-
-#### How to use
-
-Option 1) `app.set('fyrejet mode', 'properties as functions')`
-
-Option 2) 
-
-```
-app.get('/hi', (req, res, next) => {
-	console.log( req.xhr() ) // false or true 
-  return res.send('This is a properties-as-functions route')
-}, 'propsAsFns')
-```
-
-#### Caveats
-
-Similar to those of API mode.
-
-### No ETag Routes
+## No ETag Routes
 
 In addition to Express's ability to redefine ETag function or disable it altogether, Fyrejet enables you to disable ETag for specific route only.
 
 #### How to use
 
-```
+```js
 app.get('/hi', (req, res, next) => {
   return res.send('There won't be ETag')
 }, 'noEtag')
@@ -389,12 +271,6 @@ Fyrejet includes support for uWebSockets.
 
 Versions 17.5.0 and 18.5.0 have been tested and do seem to work. Despite this, minor incompatibilities are expected. Please refer to Known problems section.
 
-Despite, uWebSockets offers promising performance dividends for existing Express apps. For specific performance results, please check the [Benchmarks](#Benchmarks).
-
-
-
- Versions 2.0-2.1.1 included their own internal fork of [jkybernees's `0http 2.x` `low` server](https://github.com/jkyberneees/0http/blob/v2/lib/server/low.js). Since then, it was forked into a separate project, [`low-http-server`](https://github.com/jkyberneees/low-http-server). [Fyrejet's changes were committed to that project](https://github.com/jkyberneees/low-http-server/pull/7) and low-http-server is deemed mostly production ready. Thus, from version 2.2.0, Fyrejet will use `low-http-server` instead of its own uWebSockets compatibility layer. This should not impact any existing Fyrejet apps, since both implementations are compatible and are very similar. However, this should mean additional features, [like SSL](https://github.com/jkyberneees/low-http-server/pull/6).
-
 
 
 ### How to use
@@ -404,10 +280,9 @@ Despite, uWebSockets offers promising performance dividends for existing Express
 
 // preliminary testing done with uWS 17.5.0, but it is NOT covered with tests yet
 const low = require('../index').uwsCompat
-/* Uses jkybernees's and schamberg97's low-http-server
-*/
+
 const app = require('../index')({
-  prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish. However, this will reduce speed for node's native http
+  prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish. However, this will reduce speed for node's native http, in case you switch back
   server: low(), // You can pass options to low(), check low-http-server documentation
   serverType: 'uWebSockets' // also required, or there will always be errors
 })
@@ -428,10 +303,9 @@ setTimeout(() => {server.close()}, 10000) // closes server in approximately 10 s
 
 ### Known problems
 
-At this time, there are 2 known problems with uWebSockets.js implementation used in Fyrejet.
+At this time, there are problems with uWebSockets.js implementation used in Fyrejet.
 
-* uWebSockets.js is unable to pass `test/app.listen.js`, because `server.close()` works a bit differently. **SEVERITY:** Low
-* uWebSockets.js passes the last test (see `test/acceptance/web-service.js`), but ends up with segmentation failure upon attempt to close server. **SEVERITY:** Low-Medium?
+* uWebSockets.js is unable to pass tests, but seems to be able to work in the wild. This means that Fyrejet on uWebSockets.js works, but there are no guarantees, as it is otherwise not production-ready.
 
 ## Benchmarks
 
@@ -442,8 +316,6 @@ It is a pseudo-scientific benchmark, but whatevs :)
 ![benchmark](./benchmark.png)
 
 1. `./performance/fyrejet-route-uWS.js` on port `3001` (Fyrejet on top of uWS, with full Express API)
-2. `./performance/fyrejet-route-api.js` on port `3002` (Fyrejet in API mode)
-3. `./performance/fyrejet-route-propsAsFns.js` on port `3003` (Fyrejet in Properties as Functions mode)
 4. `./performance/fyrejet-route.js` on port `3004` (Fyrejet in default Express mode)
 5. `./performance/express-route.js` on port `3005` (Express)
 
@@ -453,7 +325,7 @@ Hardware used: `MacBook Pro (16-inch, 2019)` || `Intel(R) Core(TM) i9-9980HK CPU
 
 OS used: `macOS Catalina 10.15.6`
 
-uname -a output: `Darwin device.local 19.6.0 Darwin Kernel Version 19.6.0: Thu Jun 18 20:49:00 PDT 2020; root:xnu-6153.141.1~1/RELEASE_X86_64 x86_64`
+uname -a output: `Darwin Nikolays-MacBook-Pro.local 20.3.0 Darwin Kernel Version 20.3.0: Thu Jan 21 00:07:06 PST 2021; root:xnu-7195.81.3~1/RELEASE_X86_64 x86_64`
 
 Testing is done with `wrk` using this command: `wrk -t8 -c64 -d5s 'http://localhost:3001/hi'`, where `3001` is changed to required port.
 
@@ -461,15 +333,8 @@ Second-best result out of a series of 5 is used.
 
 Results:
 
-1) 26626.78 req/s (89.9% faster than express)
-
-2) 35585.70 req/s (153.5% faster than express)
-
-3) 25247.30 req/s (80.0% faster than express)
-
-4) 23573.40 req/s (68.1% faster than express)
-
-5) 14021.54 req/s (baseline)
+1. 26626.78 req/s (89.9% faster than express)
+2. 14021.54 req/s (baseline)
 
 The CPU package temperature was ensured to be 45-47 degrees Celsium at the start of each round.
 
