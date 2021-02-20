@@ -3,13 +3,13 @@ var express = require('../')
 var request = require('supertest')
 
 describe('req', function () {
-  describe('.secure', function () {
+  describe('.secure()', function () {
     describe('when X-Forwarded-Proto is missing', function () {
       it('should return false when http', function (done) {
         var app = express()
 
         app.get('/', function (req, res) {
-          res.send(req.secure ? 'yes' : 'no')
+          res.send(req.secure() ? 'yes' : 'no')
         })
 
         request(app)
@@ -19,13 +19,13 @@ describe('req', function () {
     })
   })
 
-  describe('.secure', function () {
+  describe('.secure()', function () {
     describe('when X-Forwarded-Proto is present', function () {
       it('should return false when http', function (done) {
         var app = express()
 
         app.get('/', function (req, res) {
-          res.send(req.secure ? 'yes' : 'no')
+          res.send(req.secure() ? 'yes' : 'no')
         })
 
         request(app)
@@ -40,7 +40,7 @@ describe('req', function () {
         app.enable('trust proxy')
 
         app.get('/', function (req, res) {
-          res.send(req.secure ? 'yes' : 'no')
+          res.send(req.secure() ? 'yes' : 'no')
         })
 
         request(app)
@@ -55,7 +55,7 @@ describe('req', function () {
         app.enable('trust proxy')
 
         app.get('/', function (req, res) {
-          res.send(req.secure ? 'yes' : 'no')
+          res.send(req.secure() ? 'yes' : 'no')
         })
 
         request(app)
@@ -70,7 +70,7 @@ describe('req', function () {
         app.enable('trust proxy')
 
         app.get('/', function (req, res) {
-          res.send(req.secure ? 'yes' : 'no')
+          res.send(req.secure() ? 'yes' : 'no')
         })
 
         request(app)
@@ -86,7 +86,7 @@ describe('req', function () {
           app.set('trust proxy', 1)
 
           app.get('/', function (req, res) {
-            res.send(req.secure ? 'yes' : 'no')
+            res.send(req.secure() ? 'yes' : 'no')
           })
 
           request(app)

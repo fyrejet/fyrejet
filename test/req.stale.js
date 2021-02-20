@@ -3,14 +3,14 @@ var express = require('../')
 var request = require('supertest')
 
 describe('req', function () {
-  describe('.stale', function () {
+  describe('.stale()', function () {
     it('should return false when the resource is not modified', function (done) {
       var app = express()
       var etag = '"12345"'
 
       app.use(function (req, res) {
         res.set('ETag', etag)
-        res.send(req.stale)
+        res.send(req.stale())
       })
 
       request(app)
@@ -24,7 +24,7 @@ describe('req', function () {
 
       app.use(function (req, res) {
         res.set('ETag', '"123"')
-        res.send(req.stale)
+        res.send(req.stale())
       })
 
       request(app)
@@ -38,7 +38,7 @@ describe('req', function () {
 
       app.disable('x-powered-by')
       app.use(function (req, res) {
-        res.send(req.stale)
+        res.send(req.stale())
       })
 
       request(app)

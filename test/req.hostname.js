@@ -3,12 +3,12 @@ var express = require('../')
 var request = require('supertest')
 
 describe('req', function () {
-  describe('.hostname', function () {
+  describe('.hostname()', function () {
     it('should return the Host when present', function (done) {
       var app = express()
 
       app.use(function (req, res) {
-        res.end(req.hostname)
+        res.end(req.hostname())
       })
 
       request(app)
@@ -21,7 +21,7 @@ describe('req', function () {
       var app = express()
 
       app.use(function (req, res) {
-        res.end(req.hostname)
+        res.end(req.hostname())
       })
 
       request(app)
@@ -35,7 +35,7 @@ describe('req', function () {
 
       app.use(function (req, res) {
         req.headers.host = null
-        res.end(String(req.hostname))
+        res.end(String(req.hostname()))
       })
 
       request(app)
@@ -47,7 +47,7 @@ describe('req', function () {
       var app = express()
 
       app.use(function (req, res) {
-        res.end(req.hostname)
+        res.end(req.hostname())
       })
 
       request(app)
@@ -60,7 +60,7 @@ describe('req', function () {
       var app = express()
 
       app.use(function (req, res) {
-        res.end(req.hostname)
+        res.end(req.hostname())
       })
 
       request(app)
@@ -76,7 +76,7 @@ describe('req', function () {
         app.enable('trust proxy')
 
         app.use(function (req, res) {
-          res.end(req.hostname)
+          res.end(req.hostname())
         })
 
         request(app)
@@ -92,7 +92,7 @@ describe('req', function () {
         app.set('trust proxy', '10.0.0.1')
 
         app.use(function (req, res) {
-          res.end(req.hostname)
+          res.end(req.hostname())
         })
 
         request(app)
@@ -108,7 +108,7 @@ describe('req', function () {
         app.enable('trust proxy')
 
         app.use(function (req, res) {
-          res.end(req.hostname)
+          res.end(req.hostname())
         })
 
         request(app)
@@ -124,7 +124,7 @@ describe('req', function () {
           app.enable('trust proxy')
 
           app.use(function (req, res) {
-            res.send(req.hostname)
+            res.send(req.hostname())
           })
 
           request(app)
@@ -140,7 +140,7 @@ describe('req', function () {
           app.enable('trust proxy')
 
           app.use(function (req, res) {
-            res.send(req.hostname)
+            res.send(req.hostname())
           })
 
           request(app)
@@ -156,7 +156,7 @@ describe('req', function () {
           app.enable('trust proxy')
 
           app.use(function (req, res) {
-            res.send(req.hostname)
+            res.send(req.hostname())
           })
 
           request(app)
@@ -173,7 +173,7 @@ describe('req', function () {
         var app = express()
 
         app.use(function (req, res) {
-          res.end(req.hostname)
+          res.end(req.hostname())
         })
 
         request(app)
