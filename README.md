@@ -20,8 +20,10 @@ Starting with Fyrejet 2.2.x, Fyrejet is only compatible with Node.js 12 and high
 
 * `50` tests removed, because they are arguably irrelevant (`test/Route.js` and `test/Router.js`)
 * `~6` tests modified to test a replacement API instead (`req.currentUrl`)
+* Some tests have been removed in 3.x (some `res.send`,  `res.json` and `res.jsonp` tests, because they test removed functionality, that has long been deprecated in Express - namely, ability to set status through these methods)
+* `req.acceptsEncoding()`, `req.acceptsCharset()` and `req.acceptsLanguage()` and `req.hose()` tests are fully removed, since they have been long deprecated.
+* All `req` tests that test additional `req` properties have been fixed to test for methods with the same names.
 * `1` test removed, because deprecated functionality was too much time to implement. 
-* `1091` out of `1147` Express tests are used, including aforementioned modified tests. Total number of tests used by Fyrejet: `1114`
 
 
 
@@ -52,6 +54,9 @@ Fyrejet is shared with the community under MIT License.
 * For general performance reasons, special modes have been removed from this major version (except route-wide no etag option)
 * Fyrejet no longer implements any `req` properties from Express. The properties are now reimplemented as methods. So, for instance, to get protocol, you should use `req.protocol()` instead of `req.protocol`. While this breaks compatibility, this helps to raise performance.
   * `req.method` and `req.url` are not affected since they are native to node.js's `http` module
+* `res.send` ability to set HTTP status code is removed for performance reasons (deprecated functionality from Express).
+* `req.host()` is removed, since `req.hostname()` is available.
+* `req.acceptsEncoding`, `req.acceptsCharset` and `req.acceptsLanguage`  are removed in favour of `req.acceptsEncodings`, `req.acceptsCharsets` and `req.acceptsLanguages`.
 
 
 
