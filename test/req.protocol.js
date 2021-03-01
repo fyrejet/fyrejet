@@ -3,12 +3,12 @@ var express = require('../')
 var request = require('supertest')
 
 describe('req', function () {
-  describe('.protocol', function () {
+  describe('.protocol()', function () {
     it('should return the protocol string', function (done) {
       var app = express()
 
       app.use(function (req, res) {
-        res.end(req.protocol)
+        res.end(req.protocol())
       })
 
       request(app)
@@ -23,7 +23,7 @@ describe('req', function () {
         app.enable('trust proxy')
 
         app.use(function (req, res) {
-          res.end(req.protocol)
+          res.end(req.protocol())
         })
 
         request(app)
@@ -39,7 +39,7 @@ describe('req', function () {
 
         app.use(function (req, res) {
           req.connection.encrypted = true
-          res.end(req.protocol)
+          res.end(req.protocol())
         })
 
         request(app)
@@ -53,7 +53,7 @@ describe('req', function () {
         app.set('trust proxy', '10.0.0.1')
 
         app.use(function (req, res) {
-          res.end(req.protocol)
+          res.end(req.protocol())
         })
 
         request(app)
@@ -68,7 +68,7 @@ describe('req', function () {
         app.enable('trust proxy')
 
         app.use(function (req, res) {
-          res.end(req.protocol)
+          res.end(req.protocol())
         })
 
         request(app)
@@ -83,7 +83,7 @@ describe('req', function () {
           app.set('trust proxy', 1)
 
           app.use(function (req, res) {
-            res.end(req.protocol)
+            res.end(req.protocol())
           })
 
           request(app)
@@ -99,7 +99,7 @@ describe('req', function () {
         var app = express()
 
         app.use(function (req, res) {
-          res.end(req.protocol)
+          res.end(req.protocol())
         })
 
         request(app)

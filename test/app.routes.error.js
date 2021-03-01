@@ -48,7 +48,7 @@ describe('app', function () {
         b.should.be.true()
         c.should.be.true()
         d.should.be.false()
-        res.send(204)
+        res.status(204).end()
       })
 
       request(app)

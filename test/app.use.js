@@ -279,14 +279,14 @@ describe('app', function () {
       assert.throws(function () { app.use('/', new Date()) }, /requires a middleware function but got a Date/)
     })
 
-    it('should strip path, if req.currentUrl is used', function (done) {
+    it('should strip path, if req.currentUrl() is used', function (done) {
       // This test is originally called 'should strip path from req.url'.
       // It was changed, because req.url operates differently in restana,
       // which we use as a base. Instead, we provide a currentUrl method
       var app = express()
 
       app.use('/foo', function (req, res) {
-        res.send('saw ' + req.method + ' ' + req.currentUrl)
+        res.send('saw ' + req.method + ' ' + req.currentUrl())
       })
 
       request(app)
@@ -321,13 +321,13 @@ describe('app', function () {
     })
 
     it('should invoke middleware for all requests starting with path', function (done) {
-      // this test is also modified, see 'should strip path, if req.currentUrl is used'
+      // this test is also modified, see 'should strip path, if req.currentUrl() is used'
 
       var app = express()
       var cb = after(3, done)
 
       app.use('/foo', function (req, res) {
-        res.send('saw ' + req.method + ' ' + req.currentUrl)
+        res.send('saw ' + req.method + ' ' + req.currentUrl())
       })
 
       request(app)
@@ -344,12 +344,12 @@ describe('app', function () {
     })
 
     it('should work if path has trailing slash', function (done) {
-      // this test is also modified, see 'should strip path, if req.currentUrl is used'
+      // this test is also modified, see 'should strip path, if req.currentUrl() is used'
       var app = express()
       var cb = after(3, done)
 
       app.use('/foo/', function (req, res) {
-        res.send('saw ' + req.method + ' ' + req.currentUrl)
+        res.send('saw ' + req.method + ' ' + req.currentUrl())
       })
 
       request(app)
@@ -366,7 +366,7 @@ describe('app', function () {
     })
 
     it('should accept array of middleware', function (done) {
-      // this test is also modified, see 'should strip path, if req.currentUrl is used'
+      // this test is also modified, see 'should strip path, if req.currentUrl() is used'
       var app = express()
 
       function fn1 (req, res, next) {
@@ -395,7 +395,7 @@ describe('app', function () {
     })
 
     it('should accept multiple arrays of middleware', function (done) {
-      // this test is also modified, see 'should strip path, if req.currentUrl is used'
+      // this test is also modified, see 'should strip path, if req.currentUrl() is used'
       var app = express()
 
       function fn1 (req, res, next) {
@@ -424,7 +424,7 @@ describe('app', function () {
     })
 
     it('should accept nested arrays of middleware', function (done) {
-      // this test is also modified, see 'should strip path, if req.currentUrl is used'
+      // this test is also modified, see 'should strip path, if req.currentUrl() is used'
       var app = express()
 
       function fn1 (req, res, next) {
@@ -453,12 +453,12 @@ describe('app', function () {
     })
 
     it('should support array of paths', function (done) {
-      // this test is also modified, see 'should strip path, if req.currentUrl is used'
+      // this test is also modified, see 'should strip path, if req.currentUrl() is used'
       var app = express()
       var cb = after(3, done)
 
       app.use(['/foo/', '/bar'], function (req, res) {
-        res.send('saw ' + req.method + ' ' + req.currentUrl + ' through ' + req.originalUrl)
+        res.send('saw ' + req.method + ' ' + req.currentUrl() + ' through ' + req.originalUrl)
       })
 
       request(app)
@@ -475,7 +475,7 @@ describe('app', function () {
     })
 
     it('should support array of paths with middleware array', function (done) {
-      // this test is also modified, see 'should strip path, if req.currentUrl is used'
+      // this test is also modified, see 'should strip path, if req.currentUrl() is used'
       var app = express()
       var cb = after(2, done)
 
@@ -491,7 +491,7 @@ describe('app', function () {
 
       function fn3 (req, res, next) {
         res.setHeader('x-fn-3', 'hit')
-        res.send('saw ' + req.method + ' ' + req.currentUrl + ' through ' + req.originalUrl)
+        res.send('saw ' + req.method + ' ' + req.currentUrl() + ' through ' + req.originalUrl)
       }
 
       app.use(['/foo/', '/bar'], [[fn1], fn2], [fn3])
@@ -512,12 +512,12 @@ describe('app', function () {
     })
 
     it('should support regexp path', function (done) {
-      // this test is also modified, see 'should strip path, if req.currentUrl is used'
+      // this test is also modified, see 'should strip path, if req.currentUrl() is used'
       var app = express()
       var cb = after(4, done)
 
       app.use(/^\/[a-z]oo/, function (req, res) {
-        res.send('saw ' + req.method + ' ' + req.currentUrl + ' through ' + req.originalUrl)
+        res.send('saw ' + req.method + ' ' + req.currentUrl() + ' through ' + req.originalUrl)
       })
 
       request(app)
@@ -538,11 +538,11 @@ describe('app', function () {
     })
 
     it('should support empty string path', function (done) {
-      // this test is also modified, see 'should strip path, if req.currentUrl is used'
+      // this test is also modified, see 'should strip path, if req.currentUrl() is used'
       var app = express()
 
       app.use('', function (req, res) {
-        res.send('saw ' + req.method + ' ' + req.currentUrl + ' through ' + req.originalUrl)
+        res.send('saw ' + req.method + ' ' + req.currentUrl() + ' through ' + req.originalUrl)
       })
 
       request(app)

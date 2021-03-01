@@ -3,7 +3,7 @@ var express = require('../')
 var request = require('supertest')
 
 describe('req', function () {
-  describe('.ip', function () {
+  describe('.ip()', function () {
     describe('when X-Forwarded-For is present', function () {
       describe('when "trust proxy" is enabled', function () {
         it('should return the client addr', function (done) {
@@ -12,7 +12,7 @@ describe('req', function () {
           app.enable('trust proxy')
 
           app.use(function (req, res, next) {
-            res.send(req.ip)
+            res.send(req.ip())
           })
 
           request(app)
@@ -27,7 +27,7 @@ describe('req', function () {
           app.set('trust proxy', 2)
 
           app.use(function (req, res, next) {
-            res.send(req.ip)
+            res.send(req.ip())
           })
 
           request(app)
@@ -44,7 +44,7 @@ describe('req', function () {
           app.use(sub)
 
           sub.use(function (req, res, next) {
-            res.send(req.ip)
+            res.send(req.ip())
           })
 
           request(app)
@@ -59,7 +59,7 @@ describe('req', function () {
           var app = express()
 
           app.use(function (req, res, next) {
-            res.send(req.ip)
+            res.send(req.ip())
           })
 
           var test = request(app).get('/')
@@ -76,7 +76,7 @@ describe('req', function () {
         app.enable('trust proxy')
 
         app.use(function (req, res, next) {
-          res.send(req.ip)
+          res.send(req.ip())
         })
 
         var test = request(app).get('/')

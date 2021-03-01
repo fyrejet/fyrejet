@@ -3,12 +3,12 @@ var express = require('../')
 var request = require('supertest')
 
 describe('req', function () {
-  describe('.xhr', function () {
+  describe('.xhr()', function () {
     it('should return true when X-Requested-With is xmlhttprequest', function (done) {
       var app = express()
 
       app.use(function (req, res) {
-        req.xhr.should.be.true()
+        req.xhr().should.be.true()
         res.end()
       })
 
@@ -22,7 +22,7 @@ describe('req', function () {
       var app = express()
 
       app.use(function (req, res) {
-        req.xhr.should.be.true()
+        req.xhr().should.be.true()
         res.end()
       })
 
@@ -36,7 +36,7 @@ describe('req', function () {
       var app = express()
 
       app.use(function (req, res) {
-        req.xhr.should.be.false()
+        req.xhr().should.be.false()
         res.end()
       })
 
@@ -50,7 +50,7 @@ describe('req', function () {
       var app = express()
 
       app.use(function (req, res) {
-        req.xhr.should.be.false()
+        req.xhr().should.be.false()
         res.end()
       })
 

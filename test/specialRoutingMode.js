@@ -1,11 +1,11 @@
-var express = require('../')
+var express = require('..')
 var request = require('supertest')
 var assert = require('assert')
 
 describe('Special Routing Mode', function () {
-  	describe('API Mode', function () {
-		describe('Global API Mode', function () {
-    		it('should work', function (done) {
+  	describe('API Mode (back compat with 2.x)', function () {
+		describe('Global API Mode (back compat with 2.x)', function () {
+    		it('should not cause errors', function (done) {
 			  var app = express()
 			  app.set('fyrejet mode', 'api')
 
@@ -16,9 +16,9 @@ describe('Special Routing Mode', function () {
 
     		  request(app)
     		    .get('/')
-    		    .expect('undefined', done)
+    		    .expect('function', done)
 			})
-			it('re-enabling Express additions should work', function (done) {
+			it('stub function in place of req.activateExpress() should not cause errors', function (done) {
 				var app = express()
 			  	app.set('fyrejet mode', 'api')
 				  
@@ -32,7 +32,7 @@ describe('Special Routing Mode', function () {
     		    .get('/express')
     		    .expect('function', done)
 			})
-			it('should also work in nested router', function (done) {
+			it('should not cause errors in nested router', function (done) {
 				var app = express()
 				var app2 = express.Router()
 				app.set('fyrejet mode', 'api')
@@ -50,9 +50,9 @@ describe('Special Routing Mode', function () {
   
 				request(app)
 				  .get('/nested/')
-				  .expect('undefined', done)
+				  .expect('function', done)
 			})
-			it('re-enabling Express additions should also work in nested router', function (done) {
+			it('stub function in place of req.activateExpress() should not cause errors in nested router', function (done) {
 				var app = express()
 				var app2 = express.Router()
 				app.set('fyrejet mode', 'api')
@@ -73,7 +73,7 @@ describe('Special Routing Mode', function () {
     		    	.get('/nested')
     		    	.expect('function', done)
 			})
-			it('should also work in mounted full instance of fyrejet', function (done) {
+			it('should not cause errors in mounted full instance of fyrejet', function (done) {
 				var app = express()
 				var app2 = express()
 				app.set('fyrejet mode', 'api')
@@ -87,10 +87,10 @@ describe('Special Routing Mode', function () {
   
 				request(app)
 				  .get('/mounted/')
-				  .expect('undefined', done)
+				  .expect('function', done)
 			})
 
-			it('re-enabling Express additions should also work in mounted full instance of fyrejet', function (done) {
+			it('stub function in place of req.activateExpress() should not cause errors in mounted full instance of fyrejet', function (done) {
 				var app = express()
 				var app2 = express()
 				app.set('fyrejet mode', 'api')
@@ -109,8 +109,8 @@ describe('Special Routing Mode', function () {
 					
 			})
 		})
-		describe('Route-only API Mode', function () {
-			it('should work', function (done) {
+		describe('Route-only API Mode (back compat with 2.x)', function () {
+			it('should not cause errors', function (done) {
 				var app = express()
   
 				app.get('/', function (req, res) {
@@ -120,9 +120,9 @@ describe('Special Routing Mode', function () {
   
 				request(app)
 				  .get('/')
-				  .expect('undefined', done)
+				  .expect('function', done)
 			})
-			it('should also work in nested router', function (done) {
+			it('should also not cause errors in nested router', function (done) {
 				var app = express()
 				var app2 = express.Router()
   
@@ -135,10 +135,10 @@ describe('Special Routing Mode', function () {
   
 				request(app)
 				  .get('/nested/')
-				  .expect('undefined', done)
+				  .expect('function', done)
 			})
 
-			it('should also work in mounted full instance of fyrejet', function (done) {
+			it('should also not cause errors in mounted full instance of fyrejet', function (done) {
 				var app = express()
 				var app2 = express()
   
@@ -151,150 +151,12 @@ describe('Special Routing Mode', function () {
   
 				request(app)
 				  .get('/mounted/')
-				  .expect('undefined', done)
+				  .expect('function', done)
 			})
 
 		})
 	})
-	describe('Properties as Functions Mode', function () {
-		describe('Global Properties as Function Mode', function () {
-    		it('should work', function (done) {
-			  var app = express()
-			  app.set('fyrejet mode', 'properties as functions')
 
-    		  app.get('/', function (req, res) {
-				res.end(req.hostname())
-    		  })
-
-    		  request(app)
-				.get('/')
-				.set('Host', 'example.com')
-        		.expect('example.com', done)
-			})
-			it('req.propFn should be available', function (done) {
-				var app = express()
-				app.set('fyrejet mode', 'properties as functions')
-  
-				app.get('/', function (req, res) {
-				  res.end(req.propFn.protocol.apply(req))
-				})
-  
-				request(app)
-				  .get('/')
-				  .expect('http', done)
-			})
-			it('should also work in nested router', function (done) {
-				var app = express()
-				app.set('fyrejet mode', 'properties as functions')
-				var app2 = express.Router()
-
-				app2.get('/', function (req, res) {
-					res.end(req.hostname())
-				})
-
-				app.use('/nested', app2)
-  
-				request(app)
-					.get('/nested/')
-					.set('Host', 'example.com')
-        			.expect('example.com', done)
-			})
-			it('req.propFn should be available in nested router', function (done) {
-				var app = express()
-				app.set('fyrejet mode', 'properties as functions')
-  
-				var app2 = express.Router()
-
-				app2.get('/', function (req, res) {
-					res.end(req.propFn.protocol.apply(req))
-				})
-
-				app.use('/nested', app2)
-  
-				request(app)
-				  .get('/nested/')
-				  .expect('http', done)
-			})
-			it('should also work in mounted full instance of fyrejet', function (done) {
-				var app = express()
-				var app2 = express()
-				app.set('fyrejet mode', 'properties as functions')
-  
-				app2.get('/', function (req, res) {
-					res.end(req.hostname())
-				})
-
-				app.use('/mounted', app2)
-  
-				request(app)
-				  .get('/mounted/')
-				  .set('Host', 'example.com')
-        		  .expect('example.com', done)
-			})
-			it('req.propFn should be available in mounted full instance of fyrejet', function (done) {
-				var app = express()
-				var app2 = express()
-				app.set('fyrejet mode', 'properties as functions')
-  
-				app2.get('/', function (req, res) {
-					res.end(req.propFn.protocol.apply(req))
-				})
-
-				app.use('/mounted', app2)
-  
-				request(app)
-				  .get('/mounted/')
-				  .set('Host', 'example.com')
-        		  .expect('http', done)
-			})
-		})
-		describe('Route-only API Mode', function () {
-			it('should work', function (done) {
-				var app = express()
-  
-				app.get('/', function (req, res) {
-					res.end(req.hostname())
-				}, 'propsAsFns')
-  
-				request(app)
-				  .get('/')
-				  .set('Host', 'example.com')
-        		  .expect('example.com', done)
-			})
-			it('should also work in nested router', function (done) {
-				var app = express()
-				var app2 = express.Router()
-  
-				app2.get('/', function (req, res) {
-					res.end(req.hostname())
-				})
-
-				app.use('/nested', app2, 'propsAsFns')
-  
-				request(app)
-				  .get('/nested/')
-				  .set('Host', 'example.com')
-        		  .expect('example.com', done)
-			})
-
-			it('should also work in mounted full instance of fyrejet', function (done) {
-				var app = express()
-				var app2 = express()
-  
-				app2.get('/', function (req, res) {
-					res.end(req.hostname())
-				})
-
-				app.use('/mounted', app2, 'propsAsFns')
-  
-				request(app)
-				  .get('/mounted/')
-				  .set('Host', 'example.com')
-        		  .expect('example.com', done)
-			})
-
-		})
-	})
 	describe('No ETag Mode', function () {
 		it('should work', function (done) {
 			var app = express()
