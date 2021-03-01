@@ -8,7 +8,7 @@
 
 Fyrejet is a web-framework that is designed for speed and ease-of-use. After working with numerous frameworks, you never fail to appreciate the ease of development with Express. In fact, it is so easy that it is appropriate for novice developers to learn how to code. 
 
-Unfortunately, that comes at a cost. While Express brings the speed of development, its performance is just okay-ish. Other frameworks either provide different APIs, are incompatible with Express middlewares or provide less functionality. For instance, Restana, a great API-oriented framework by jkybernees provides incredible performance, but only a subset of Express APIs, making it not suitable as an Express replacement. Moreover, Express relies on `Object.setPrototypeOf` in request handling, which is inherently slow (see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf) and whose performance has drastically decreased after Node.js 12.16.0.
+Unfortunately, that comes at a cost. While Express brings the speed of development, its performance is just okay-ish. Other frameworks either provide different APIs, are incompatible with Express middlewares or provide less functionality. For instance, Restana, a great API-oriented framework by jkybernees provides incredible performance, but only a subset of Express APIs, making it not suitable as an Express replacement. Moreover, Express relies on `Object.setPrototypeOf` in request handling, which is inherently slow (see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf) and whose performance has drastically decreased after Node.js 12.18.1 was released.
 
 Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to be faster than Express, while providing very Express-like API. In fact, Fyrejet uses slightly modified<sup>[1](#footnote1)</sup> Express automated unit tests to verify the codebase. Moreover, Fyrejet offers you the ability to use Express APIs with uWebSockets.js (not production ready yet).
 
@@ -274,7 +274,7 @@ No known caveats yet.
 
 Fyrejet includes support for uWebSockets.
 
-Versions 17.5.0 and 18.5.0 have been tested and do seem to work. Despite this, minor incompatibilities are expected. Please refer to Known problems section.
+Versions 17.5.0 and 18.5.0 have been tested and do seem to work. All tests pass (except one related to closing the server). Despite this, minor incompatibilities are expected. Please refer to Known problems section.
 
 
 
@@ -308,9 +308,7 @@ setTimeout(() => {server.close()}, 10000) // closes server in approximately 10 s
 
 ### Known problems
 
-At this time, there are problems with uWebSockets.js implementation used in Fyrejet.
-
-* uWebSockets.js is unable to pass tests, but seems to be able to work in the wild. This means that Fyrejet on uWebSockets.js works, but there are no guarantees, as it is otherwise not production-ready.
+At this time, there may be problems with uWS. Although it passes all tests, it is possible that there may be hidden bugs in edge cases. Use at own risk. Consider, whether 4% performance increase is worth potential problems.
 
 ## Benchmarks
 
@@ -318,9 +316,9 @@ It is a pseudo-scientific benchmark, but whatevs :)
 
 
 
-![benchmark](./benchmark.png)
+![benchmark](./performance_comparison.jpg)
 
-1. `./performance/fyrejet-route-uWS.js` on port `3001` (Fyrejet on top of uWS, with full Express API)
+1. `./performance/fyrejet-route-uWS.js` on port `3001` (Fyrejet on top of uWS, with full Express-like API)
 4. `./performance/fyrejet-route.js` on port `3004` (Fyrejet in default Express mode)
 5. `./performance/express-route.js` on port `3005` (Express)
 
@@ -338,14 +336,19 @@ Second-best result out of a series of 5 is used.
 
 Results:
 
-1. 26626.78 req/s (89.9% faster than express)
-2. 14021.54 req/s (baseline)
+1. 26903,34 req/s (99% faster than express)
+2. 25910,25 req/s (92% faster than express)
+3. 13501,54 req/s (baseline)
 
 The CPU package temperature was ensured to be 45-47 degrees Celsium at the start of each round.
 
 ### Clustering
 
-Be aware that `uWebSockets.js` generally doesn't perform on MacOS and FreeBSD as well as on Linux. It also does not clusterize on non-Linux platforms, [as it depends on certain kernel features](https://github.com/uNetworking/uWebSockets.js/issues/214#issuecomment-547589050). This only affects `uWebSockets.js` (and, by extenstion, `fyrejet.uwsCompat`). However, Fyrejet itself has no problems with Node.js clustering, as demonstrated by the table before.
+Be aware that `uWebSockets.js` generally doesn't perform on MacOS, FreeBSD and Windows as well as on Linux. It also does not clusterize on non-Linux platforms, [as it depends on certain kernel features](https://github.com/uNetworking/uWebSockets.js/issues/214#issuecomment-547589050). This only affects `uWebSockets.js` (and, by extenstion, `fyrejet.uwsCompat`). As a workaround, consider running your app as separate apps listening on different ports, if using uWebSockets.js, and proxying behind nginx.
+
+
+
+However, Fyrejet itself has no problems with Node.js clustering, as demonstrated by the table below:
 
 ```sh
 # in terminal 1 or whatever pleases your soul <3
@@ -363,10 +366,10 @@ wrk -t8 -c64 -d5s 'http://localhost:4004/hi'
 
 | № of workers | Express, req/s | Fyrejet, req/s | % difference in favor of Fyrejet |
 | ------------ | -------------- | -------------- | -------------------------------- |
-| 1            | 13893.07       | 22563.44       | 62.4                             |
-| 2            | 25067.27       | 40751.20       | 62.5                             |
-| 3            | 33958.38       | 56950.06       | 67.7                             |
-| 4            | 44578.20       | 72082.12       | 61.7                             |
+| 1            | 13539.62       | 25287.58       | 86.7                             |
+| 2            | 23379.74       | 45895.10       | 96.3                             |
+| 3            | 32139.68       | 62850.37       | 95.5                             |
+| 4            | 42702.51       | 75168.72       | 76.0                             |
 
 
 
