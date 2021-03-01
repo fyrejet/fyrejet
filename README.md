@@ -345,7 +345,7 @@ The CPU package temperature was ensured to be 45-47 degrees Celsium at the start
 
 ### Clustering
 
-Be aware that `uWebSockets.js` generally doesn't perform on MacOS and FreeBSD as well as on Linux. It also does not clusterize on non-Linux platforms, [as it depends on certain kernel features](https://github.com/uNetworking/uWebSockets.js/issues/214#issuecomment-547589050). This only affects `uWebSockets.js` (and, by extenstion, `fyrejet.uwsCompat`). However, Fyrejet itself has no problems with Node.JS clustering, as demonstrated by the table before.
+Be aware that `uWebSockets.js` generally doesn't perform on MacOS and FreeBSD as well as on Linux. It also does not clusterize on non-Linux platforms, [as it depends on certain kernel features](https://github.com/uNetworking/uWebSockets.js/issues/214#issuecomment-547589050). This only affects `uWebSockets.js` (and, by extenstion, `fyrejet.uwsCompat`). However, Fyrejet itself has no problems with Node.js clustering, as demonstrated by the table before.
 
 ```sh
 # in terminal 1 or whatever pleases your soul <3
