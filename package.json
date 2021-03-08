@@ -1,6 +1,6 @@
 {
   "name": "fyrejet",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Web Framework for node.js that strives to provide (almost) perfect compatibility with Express, while providing better performance, where you need it.",
   "main": "index.js",
   "scripts": {
@@ -53,7 +53,6 @@
     "express": "^4.17.1",
     "finalhandler": "~1.1.2",
     "fresh": "0.5.2",
-    "low-http-server": "^2.1.1",
     "lru-cache": "^6.0.0",
     "methods": "~1.1.2",
     "on-change": "^2.2.0",
