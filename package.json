@@ -92,7 +92,6 @@
     "should": "13.2.3",
     "standard": "^14.3.4",
     "supertest": "^5.0.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.5.0",
     "vhost": "~3.0.2"
   },
   "eslintConfig": {
