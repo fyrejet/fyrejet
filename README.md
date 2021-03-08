@@ -270,11 +270,11 @@ No known caveats yet.
 
 
 
-## uWebSockets
+## uWebSockets.js
 
-Fyrejet includes support for uWebSockets.
+Fyrejet includes support for uWebSockets.js.
 
-Versions 17.5.0 and 18.5.0 have been tested and do seem to work. All tests pass (except one related to closing the server). Despite this, minor incompatibilities are expected. Please refer to Known problems section.
+Versions 17.5.0 and 18.5.0 have been tested and do seem to work. All tests pass (except one related to closing the server). Despite this, minor incompatibilities are expected. Please refer to Known problems section. Also take note that you need to install uWebSockets.js on your own.
 
 
 

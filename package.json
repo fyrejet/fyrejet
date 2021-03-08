@@ -1,6 +1,6 @@
 {
   "name": "fyrejet",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Web Framework for node.js that strives to provide (almost) perfect compatibility with Express, while providing better performance, where you need it.",
   "main": "index.js",
   "scripts": {
@@ -92,7 +92,6 @@
     "should": "13.2.3",
     "standard": "^14.3.4",
     "supertest": "^5.0.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.5.0",
     "vhost": "~3.0.2"
   },
   "eslintConfig": {
