@@ -89,9 +89,6 @@ var appCore = function (options, server, app) {
         let options
         options = req.app.getRouter().availableMethodsForRoute[req.url]
         if (!options) {
-          
-        }
-        if (!options) {
           return fh(err || false)
         }
         const optionsString = options.join(',')
