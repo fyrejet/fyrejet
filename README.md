@@ -260,7 +260,7 @@ In addition to Express's ability to redefine ETag function or disable it altoget
 
 ```js
 app.get('/hi', (req, res, next) => {
-  return res.send('There won't be ETag')
+  return res.send('There won\'t be ETag')
 }, 'noEtag')
 ```
 
@@ -342,6 +342,8 @@ Results:
 
 The CPU package temperature was ensured to be 45-47 degrees Celsium at the start of each round.
 
+Take note that Fyrejet with `uWebSockets.js` should perform much better on Linux (I just don't have time to test, however [this benchmark](https://github.com/the-benchmarker/web-frameworks) supports the claims). 
+
 ### Clustering
 
 Be aware that `uWebSockets.js` generally doesn't perform on MacOS, FreeBSD and Windows as well as on Linux. It also does not clusterize on non-Linux platforms, [as it depends on certain kernel features](https://github.com/uNetworking/uWebSockets.js/issues/214#issuecomment-547589050). This only affects `uWebSockets.js` (and, by extenstion, `fyrejet.uwsCompat`). As a workaround, consider running your app as separate apps listening on different ports, if using uWebSockets.js, and proxying behind nginx.
@@ -366,10 +368,10 @@ wrk -t8 -c64 -d5s 'http://localhost:4004/hi'
 
 | № of workers | Express, req/s | Fyrejet, req/s | % difference in favor of Fyrejet |
 | ------------ | -------------- | -------------- | -------------------------------- |
-| 1            | 13539.62       | 25287.58       | 86.7                             |
-| 2            | 23379.74       | 45895.10       | 96.3                             |
-| 3            | 32139.68       | 62850.37       | 95.5                             |
-| 4            | 42702.51       | 75168.72       | 76.0                             |
+| 1            | 13082.17       | 27266.82       | 108.4                            |
+| 2            | 23491.51       | 47083.39       | 100.4                            |
+| 3            | 33555.15       | 67366.15       | 100.7                            |
+| 4            | 42141.53       | 80632.00       | 91.3                             |
 
 
 
