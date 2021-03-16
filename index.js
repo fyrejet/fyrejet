@@ -77,10 +77,28 @@ var appCore = function (options, server, app) {
     },
     handle: function handle (req, res, step) {
       res.__serverType = options.serverType
-      res.defaultErrHandler = finalhandler(req, res, {
-        env: this.get('env'),
-        onerror: logerror.bind(this)
-      })
+      res.defaultErrHandler = function(err) {
+        const fh = finalhandler(req, res, {
+          env: app.get('env'),
+          onerror: logerror.bind(app)
+        })
+        
+        if (req.method !== 'OPTIONS') {
+          return fh(err)
+        }
+        let options
+        options = req.app.getRouter().availableMethodsForRoute[req.url]
+        if (!options) {
+          return fh(err || false)
+        }
+        const optionsString = options.join(',')
+        res.setHeader('Allow', optionsString)
+        res.setHeader('Content-Type', "text/html; charset=utf-8")
+        res.statusCode = 200;
+        return this.end(optionsString)
+      }
+
+      //console.log(res.defaultErrHandler.toString())
 
       if (this.enabled('x-powered-by')) res.setHeader('X-Powered-By', 'Fyrejet')
 
