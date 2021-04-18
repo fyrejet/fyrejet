@@ -6,23 +6,23 @@
  * MIT Licensed
 */
 
-var EventEmitter = require('events').EventEmitter
-var proto = require('./lib/application')
-var req = require('./lib/request')
-var res = require('./lib/response')
-var bodyParser = require('body-parser')
-var finalhandler = require('finalhandler')
+const EventEmitter = require('events').EventEmitter
+const proto = require('./lib/application')
+const req = require('./lib/request')
+const res = require('./lib/response')
+const bodyParser = require('body-parser')
+const finalhandler = require('finalhandler')
 
 const requestRouter = require('./lib/routing/request-router')
 
-var initMiddleware = require('./lib/middleware/init')
+const initMiddleware = require('./lib/middleware/init')
 const { logerror } = require('./lib/utils')
 
-var appCore = function (options, server, app) {
+const appCore = function (options, server, app) {
   const startFn = (...args) => {
     if (!args || !args.length) args = [3000]
     if (options.serverType === 'uWebSockets') {
-      var __address = {}
+      const __address = {}
       server.__address = __address
       server.serverType = options.serverType
       if (typeof args[args.length - 1] !== 'function') {
@@ -30,7 +30,7 @@ var appCore = function (options, server, app) {
           // stub function
         })
       }
-      var ipFamily = app.get('ipFamily')
+      let ipFamily = app.get('ipFamily')
       if (ipFamily !== 'IPv6' && ipFamily !== 'IPv4') ipFamily = 'IPv6'
 
       switch (args.length >= 3) {
@@ -53,7 +53,7 @@ var appCore = function (options, server, app) {
     server.listen(...args)
     return server
   }
-  var core = {
+  const core = {
     errorHandler: options.errorHandler,
     fyrejetApp: true,
     newRouter () {
@@ -77,12 +77,12 @@ var appCore = function (options, server, app) {
     },
     handle: function handle (req, res, step) {
       res.__serverType = options.serverType
-      res.defaultErrHandler = function(err) {
+      res.defaultErrHandler = function (err) {
         const fh = finalhandler(req, res, {
           env: app.get('env'),
           onerror: logerror.bind(app)
         })
-        
+
         if (req.method !== 'OPTIONS') {
           return fh(err)
         }
@@ -93,12 +93,12 @@ var appCore = function (options, server, app) {
         }
         const optionsString = options.join(',')
         res.setHeader('Allow', optionsString)
-        res.setHeader('Content-Type', "text/html; charset=utf-8")
-        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/html; charset=utf-8')
+        res.statusCode = 200
         return this.end(optionsString)
       }
 
-      //console.log(res.defaultErrHandler.toString())
+      // console.log(res.defaultErrHandler.toString())
 
       if (this.enabled('x-powered-by')) res.setHeader('X-Powered-By', 'Fyrejet')
 
@@ -128,20 +128,20 @@ var appCore = function (options, server, app) {
 
 exports = module.exports = createApplication
 
-var defaultErrorHandler = (err, req, res) => {
+const defaultErrorHandler = (err, req, res) => {
   return res.defaultErrHandler(err)
 }
 
 function createApplication (options = {}) {
   options.errorHandler = options.errorHandler || defaultErrorHandler
-  if (options.serverType === 'uWebSocket' || options.serverType === 'uWebSockets' || process.env.UWS_SERVER_ENABLED_FOR_TEST === 'TRUE' || process.env.UWS_SERVER === "TRUE") { // legacy or tests
+  if (options.serverType === 'uWebSocket' || options.serverType === 'uWebSockets' || process.env.UWS_SERVER_ENABLED_FOR_TEST === 'TRUE' || process.env.UWS_SERVER === 'TRUE') { // legacy or tests
     options.serverType = 'uWebSockets'
     options.prioRequestsProcessing = false
     options.server = require('./lib/uwsCompat').uwsCompat(options)
-    process.env.UWS_SERVER = "true"
+    process.env.UWS_SERVER = 'true'
   }
 
-  var server = options.server || require('http').createServer()
+  let server = options.server || require('http').createServer()
 
   if (!server) {
     if (options.key && options.cert) {
@@ -188,7 +188,7 @@ function createApplication (options = {}) {
   // Init the express-like app abilities
   app.init(options)
 
-  //app.use(initMiddleware(options, reqProperties, reqPropertiesEssential, app))
+  // app.use(initMiddleware(options, reqProperties, reqPropertiesEssential, app))
 
   app.use(initMiddleware(options, app))
 
@@ -230,7 +230,7 @@ exports.uwsCompat = require('./lib/uwsCompat').uwsCompat
  * Replace Express removed middleware with an appropriate error message. We are not express, but we will imitate it precisely
  */
 
-var removedMiddlewares = [
+const removedMiddlewares = [
   'bodyParser',
   'compress',
   'cookieSession',

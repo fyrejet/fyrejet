@@ -1,8 +1,8 @@
 'use strict'
 
-var express = require('express')
+const express = require('express')
 
-var app = express()
+const app = express()
 
 app.set('etag', false)
 

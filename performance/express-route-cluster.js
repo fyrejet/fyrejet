@@ -1,9 +1,9 @@
 'use strict'
 
-var cluster = require('cluster')
+const cluster = require('cluster')
 
 if (cluster.isMaster) {
-  var numCPUs = require('os').cpus().length
+  let numCPUs = require('os').cpus().length
   if (!isNaN(parseInt(process.argv[process.argv.length - 1]))) {
     numCPUs = parseInt(process.argv[process.argv.length - 1])
   }
@@ -12,9 +12,9 @@ if (cluster.isMaster) {
     cluster.fork()
   }
 } else {
-  var express = require('express')
+  const express = require('express')
 
-  var app = express()
+  const app = express()
 
   app.set('etag', false)
 
