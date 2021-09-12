@@ -7,6 +7,8 @@ const app = require('../index')({
   serverType: 'uWebSockets'
 })
 
+app.set('etag', false)
+
 app.get('/hi', (req, res) => {
   res.send('')
 })
