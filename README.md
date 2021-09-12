@@ -274,7 +274,7 @@ No known caveats yet.
 
 Fyrejet includes support for uWebSockets.js.
 
-Versions 17.5.0 and 18.5.0 have been tested and do seem to work. All tests pass (except one related to closing the server). Despite this, minor incompatibilities are expected. Please refer to Known problems section. Also take note that you need to install uWebSockets.js on your own.
+Versions 17.5.0 and 18.5.0+ have been tested and do seem to work. All tests pass (except one related to closing the server). Despite this, minor incompatibilities are expected. Please refer to Known problems section. Also take note that you need to install uWebSockets.js on your own.
 
 
 
@@ -336,9 +336,9 @@ Second-best result out of a series of 5 is used.
 
 Results:
 
-1. 26903,34 req/s (99% faster than express)
-2. 25910,25 req/s (92% faster than express)
-3. 13501,54 req/s (baseline)
+1. 30553.39 req/s (116.3% faster than express)
+2. 29005.36 req/s (105.4% faster than express)
+3. 14122.31 req/s (baseline)
 
 The CPU package temperature was ensured to be 45-47 degrees Celsium at the start of each round.
 
@@ -368,12 +368,10 @@ wrk -t8 -c64 -d5s 'http://localhost:4004/hi'
 
 | № of workers | Express, req/s | Fyrejet, req/s | % difference in favor of Fyrejet |
 | ------------ | -------------- | -------------- | -------------------------------- |
-| 1            | 13082.17       | 27266.82       | 108.4                            |
-| 2            | 23491.51       | 47083.39       | 100.4                            |
-| 3            | 33555.15       | 67366.15       | 100.7                            |
-| 4            | 42141.53       | 80632.00       | 91.3                             |
-
-
+| 1            | 14102.74       | 28903.02       | 105.0                            |
+| 2            | 25568.79       | 51139.34       | 100.0                            |
+| 3            | 35260.33       | 71277.61       | 102.1                            |
+| 4            | 45060.06       | 89265.70       | 98.1                             |
 
 ## Run tests
 
