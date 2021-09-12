@@ -86,8 +86,7 @@ const appCore = function (options, server, app) {
         if (req.method !== 'OPTIONS') {
           return fh(err)
         }
-        let options
-        options = req.app.getRouter().availableMethodsForRoute[req.url]
+        const options = req.app.getRouter().availableMethodsForRoute[req.url]
         if (!options) {
           return fh(err || false)
         }
@@ -97,8 +96,6 @@ const appCore = function (options, server, app) {
         res.statusCode = 200
         return this.end(optionsString)
       }
-
-      // console.log(res.defaultErrHandler.toString())
 
       if (this.enabled('x-powered-by')) res.setHeader('X-Powered-By', 'Fyrejet')
 
@@ -162,7 +159,7 @@ function createApplication (options = {}) {
     })
   }
 
-  var app = function (req, res, next) {
+  const app = function (req, res, next) {
     app.handle(req, res, next)
   }
 
