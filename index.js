@@ -188,7 +188,7 @@ function createApplication (options = {}) {
 
   // app.use(initMiddleware(options, reqProperties, reqPropertiesEssential, app))
 
-  app.use(initMiddleware(options, app))
+  app.use(initMiddleware(app))
 
   return app
 }
