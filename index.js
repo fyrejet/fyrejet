@@ -203,7 +203,6 @@ exports.defaultErrorHandler = defaultErrorHandler // expose defaultErrorHandler 
 */
 
 exports.json = bodyParser.json
-exports.query = require('./lib/routing/query')
 exports.raw = bodyParser.raw
 exports.static = require('./lib/additions/static.js')
 exports.text = bodyParser.text
