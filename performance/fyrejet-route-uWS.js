@@ -8,6 +8,7 @@ const app = require('../index')({
 })
 
 app.set('etag', false)
+app.set('x-powered-by', false)
 
 app.get('/hi', (req, res) => {
   res.send('')

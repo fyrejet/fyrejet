@@ -17,6 +17,7 @@ if (cluster.isMaster) {
   const app = express()
 
   app.set('etag', false)
+  app.set('x-powered-by', false)
 
   app.get('/hi', function (req, res) {
     res.send('')
