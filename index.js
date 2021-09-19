@@ -79,6 +79,9 @@ const appCore = function (options, server, app) {
     handle: function handle (req, res, step) {
       res.__serverType = options.serverType
       res.defaultErrHandler = function (err) {
+
+        if (this.writableEnded) return console.log(err)
+
         const fh = finalhandler(req, res, {
           env: app.get('env'),
           onerror: app.logerror
@@ -87,6 +90,7 @@ const appCore = function (options, server, app) {
         if (req.method !== 'OPTIONS') {
           return fh(err)
         }
+
         const options = req.app.getRouter().availableMethodsForRoute[req.url]
         if (!options) {
           return fh(err || false)
@@ -185,8 +189,6 @@ function createApplication (options = {}) {
 
   // Init the express-like app abilities
   app.init(options)
-
-  // app.use(initMiddleware(options, reqProperties, reqPropertiesEssential, app))
 
   app.use(initMiddleware(app))
 
