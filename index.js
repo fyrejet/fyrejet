@@ -98,7 +98,7 @@ const appCore = function (options, server, app) {
         return this.end(optionsString)
       }
 
-      if (this.enabled('x-powered-by')) res.setHeader('X-Powered-By', 'Fyrejet')
+      this.poweredBy(res)
 
       req.app = this
       res.app = req.app
