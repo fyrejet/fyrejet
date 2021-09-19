@@ -75,12 +75,13 @@ const appCore = function (options, server, app) {
       if (server.keepAliveTimeout) return false
       return true
     },
+    logerror: logerror.bind(app),
     handle: function handle (req, res, step) {
       res.__serverType = options.serverType
       res.defaultErrHandler = function (err) {
         const fh = finalhandler(req, res, {
           env: app.get('env'),
-          onerror: logerror.bind(app)
+          onerror: app.logerror
         })
 
         if (req.method !== 'OPTIONS') {
