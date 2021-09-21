@@ -79,7 +79,6 @@ const appCore = function (options, server, app) {
     handle: function handle (req, res, step) {
       res.__serverType = options.serverType
       res.defaultErrHandler = function (err) {
-
         if (this.writableEnded) return console.log(err)
 
         const fh = finalhandler(req, res, {
@@ -87,7 +86,7 @@ const appCore = function (options, server, app) {
           onerror: app.logerror
         })
 
-        if (req.method !== 'OPTIONS') {
+        if (req.rData_internal.method !== 'OPTIONS') {
           return fh(err)
         }
 
