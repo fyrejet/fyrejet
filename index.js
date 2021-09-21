@@ -220,7 +220,7 @@ exports.response = res
  */
 
 // exports.Route = Route;
-exports.Router = require('./lib/routing/request-router-constructor')
+exports.Router = createApplication
 
 exports.uwsCompat = require('./lib/uwsCompat').uwsCompat
 
