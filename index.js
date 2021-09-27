@@ -171,14 +171,14 @@ function createApplication (options = {}) {
   Object.assign(app, appCore(options, server, app))
   Object.assign(app, EventEmitter.prototype)
 
-  app.request = Object.create(req, {
-    app: { configurable: true, enumerable: true, writable: true, value: app }
-  })
-
-  // expose the prototype that will get set on responses
-  app.response = Object.create(res, {
-    app: { configurable: true, enumerable: true, writable: true, value: app }
-  })
+  //app.request = Object.create(req, {
+  //  app: { configurable: true, enumerable: true, writable: true, value: app }
+  //})
+//
+  //// expose the prototype that will get set on responses
+  //app.response = Object.create(res, {
+  //  app: { configurable: true, enumerable: true, writable: true, value: app }
+  //})
 
   app.handler = app.handle
   app.callback = () => app.handle
