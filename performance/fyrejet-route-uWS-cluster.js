@@ -21,7 +21,7 @@ if (cluster.isMaster) {
   })
 
   app.get('/hi', function (req, res) {
-    res.send('')
+    res.sendLite('')
   })
 
   app.listen(4004)

@@ -11,7 +11,7 @@ app.set('etag', false)
 app.set('x-powered-by', false)
 
 app.get('/hi', (req, res) => {
-  res.send('')
+  res.sendLite('')
 })
 
 app.start(3001, (socket) => {
