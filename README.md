@@ -49,6 +49,13 @@ Fyrejet is shared with the community under MIT License.
 
 
 
+## Breaking changes from `3.x` to `4.x`
+
+* `res.sendfile` is deleted. Should not significantly impact anyone, as `res.sendfile` is deprecated for a long time in Express 4.
+* Major internal routing & init middleware changes to optimize performance. Behaviour is the same, but over 50% of the code is rewritten or reorganised
+* It is no longer possible to modify Fyrejet's request and response prototypes. If you need to add new request or response functionality, consider adding new functions or objects to `req` and `res` objects via middleware. This change is made to greatly improve performance
+* `app.settings` implementation now relies on proxy object
+
 ## Breaking changes from `2.x` to `3.x`
 
 * For general performance reasons, special modes have been removed from this major version (except route-wide no etag option)
@@ -318,17 +325,17 @@ It is a pseudo-scientific benchmark, but whatevs :)
 
 ![benchmark](./performance_comparison.jpg)
 
-1. `./performance/fyrejet-route-uWS.js` on port `3001` (Fyrejet on top of uWS, with full Express-like API)
-4. `./performance/fyrejet-route.js` on port `3004` (Fyrejet in default Express mode)
+1. `./performance/fyrejet-route-uWS.js` and `./performance/fyrejet-route-uWS-sendLite.js` on port `3001` (Fyrejet on top of uWS, with full Express-like API)
+4. `./performance/fyrejet-route.js` and `./performance/fyrejet-route-sendLite.js` on port `3004` (Fyrejet in default Express mode)
 5. `./performance/express-route.js` on port `3005` (Express)
 
-Each app exposes the `/hi` route, using the `GET` method
+Each app exposes the `/hi` route, using the `GET` method. `-sendLite.js` examples use `res.sendLite` from `restana` project that handles data much faster than express's `res.send`, but at the cost of no Etag features. However, the performance with sendLite is VERY close to stock Fastify.
 
 Hardware used: `MacBook Pro (16-inch, 2019)` || `Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz`  || `64 GB 2667 MHz DDR4`
 
-OS used: `macOS Catalina 10.15.6`
+OS used: `macOS Big Sur 11.6.0`
 
-uname -a output: `Darwin Nikolays-MacBook-Pro.local 20.3.0 Darwin Kernel Version 20.3.0: Thu Jan 21 00:07:06 PST 2021; root:xnu-7195.81.3~1/RELEASE_X86_64 x86_64`
+uname -a output: `Darwin Nikolays-MacBook-Pro.local 20.6.0 Darwin Kernel Version 20.6.0: Mon Aug 30 06:12:21 PDT 2021; root:xnu-7195.141.6~3/RELEASE_X86_64 x86_64`
 
 Testing is done with `wrk` using this command: `wrk -t8 -c64 -d5s 'http://localhost:3001/hi'`, where `3001` is changed to required port.
 
@@ -336,13 +343,15 @@ Second-best result out of a series of 5 is used.
 
 Results:
 
-1. 30553.39 req/s (116.3% faster than express)
-2. 29005.36 req/s (105.4% faster than express)
-3. 14122.31 req/s (baseline)
+1. uWS: `43150.98 req/s` (202.5% faster than express) / `49653.79 req/s` (w/ restana's res.sendLite) (248.1% faster than express)
+2. `40635.16 req/s` (184.8% faster than express) /  `47509.77 req/s` (w/ restana's res.sendLite) (233.0% faster than express)
+3. `14263.38 req/s` (baseline) 
 
 The CPU package temperature was ensured to be 45-47 degrees Celsium at the start of each round.
 
 Take note that Fyrejet with `uWebSockets.js` should perform much better on Linux (I just don't have time to test, however [this benchmark](https://github.com/the-benchmarker/web-frameworks) supports the claims). 
+
+Take note that if you don't need Express features, such as Etag & other caching features, Restana's `res.sendLite` is going to provide you with performance more similar to Fastify. In that case, Fyrejet is gonna provide `37032.2 req/s` or `41220 req/s` under uWS.
 
 ### Clustering
 
