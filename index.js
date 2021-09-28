@@ -8,8 +8,8 @@
 
 const EventEmitter = require('events').EventEmitter
 const proto = require('./lib/application')
-const req = require('./lib/request')
-const res = require('./lib/response')
+const req = require('./lib/request').req
+const res = require('./lib/response').res
 const bodyParser = require('body-parser')
 const finalhandler = require('finalhandler')
 
