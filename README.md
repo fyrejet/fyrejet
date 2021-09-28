@@ -378,6 +378,10 @@ Currently, you can use PayPal:
 
 https://paypal.me/schamberg97
 
+## Thanks to
+
+[jkyberneees](https://github.com/jkyberneees)'s [restana](https://github.com/BackendStack21/restana) project, which served as a foundation for this project
+
 ## Support
 
 In order to get support, you can file an issue in this repository. If you need commercial support, please write on schamberg.nicholas@gmail.com
