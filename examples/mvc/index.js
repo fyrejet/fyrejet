@@ -21,17 +21,6 @@ app.set('view engine', 'ejs');
 // set views for error and 404 pages
 app.set('views', path.join(__dirname, 'views'));
 
-// define a custom res.message() method
-// which stores messages in the session
-app.response.message = function(msg){
-  // reference `req.session` via the `this.req` reference
-  var sess = this.req.session;
-  // simply add the msg to an array for later
-  sess.messages = sess.messages || [];
-  sess.messages.push(msg);
-  return this;
-};
-
 // log
 if (!module.parent) app.use(logger('dev'));
 
@@ -54,6 +43,14 @@ app.use(methodOverride('_method'));
 // expose the "messages" local variable when views are rendered
 app.use(function(req, res, next){
   var msgs = req.session.messages || [];
+
+  res.message = function(msg) {
+    var sess = res.req.session;
+    // simply add the msg to an array for later
+    sess.messages = sess.messages || [];
+    sess.messages.push(msg);
+    return res;
+  }
 
   // expose "messages" local variable
   res.locals.messages = msgs;

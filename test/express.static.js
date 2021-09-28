@@ -467,7 +467,7 @@ describe('express.static()', function () {
     before(function () {
       this.app = express()
       this.app.use(function (req, res, next) {
-        req.originalUrl = req.rData_internal.url = // req.url is changed here into req.rData_internal.url, because req.url works slightly differently in Fyrejet
+        req.originalUrl = req.url = // req.url is changed here into req.url, because req.url works slightly differently in Fyrejet
           req.originalUrl.replace(/\/snow(\/|$)/, '/snow \u2603$1')
         next()
       })

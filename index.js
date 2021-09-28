@@ -8,8 +8,8 @@
 
 const EventEmitter = require('events').EventEmitter
 const proto = require('./lib/application')
-const req = require('./lib/request')
-const res = require('./lib/response')
+const req = require('./lib/request').req
+const res = require('./lib/response').res
 const bodyParser = require('body-parser')
 const finalhandler = require('finalhandler')
 
@@ -75,17 +75,21 @@ const appCore = function (options, server, app) {
       if (server.keepAliveTimeout) return false
       return true
     },
+    logerror: logerror.bind(app),
     handle: function handle (req, res, step) {
       res.__serverType = options.serverType
       res.defaultErrHandler = function (err) {
+        if (this.writableEnded) return console.log(err)
+
         const fh = finalhandler(req, res, {
           env: app.get('env'),
-          onerror: logerror.bind(app)
+          onerror: app.logerror
         })
 
         if (req.method !== 'OPTIONS') {
           return fh(err)
         }
+
         const options = req.app.getRouter().availableMethodsForRoute[req.url]
         if (!options) {
           return fh(err || false)
@@ -97,7 +101,7 @@ const appCore = function (options, server, app) {
         return this.end(optionsString)
       }
 
-      if (this.enabled('x-powered-by')) res.setHeader('X-Powered-By', 'Fyrejet')
+      this.poweredBy(res)
 
       req.app = this
       res.app = req.app
@@ -167,15 +171,6 @@ function createApplication (options = {}) {
   Object.assign(app, appCore(options, server, app))
   Object.assign(app, EventEmitter.prototype)
 
-  app.request = Object.create(req, {
-    app: { configurable: true, enumerable: true, writable: true, value: app }
-  })
-
-  // expose the prototype that will get set on responses
-  app.response = Object.create(res, {
-    app: { configurable: true, enumerable: true, writable: true, value: app }
-  })
-
   app.handler = app.handle
   app.callback = () => app.handle
 
@@ -185,9 +180,7 @@ function createApplication (options = {}) {
   // Init the express-like app abilities
   app.init(options)
 
-  // app.use(initMiddleware(options, reqProperties, reqPropertiesEssential, app))
-
-  app.use(initMiddleware(options, app))
+  app.use(initMiddleware(app))
 
   return app
 }
@@ -200,7 +193,6 @@ exports.defaultErrorHandler = defaultErrorHandler // expose defaultErrorHandler 
 */
 
 exports.json = bodyParser.json
-exports.query = require('./lib/routing/query')
 exports.raw = bodyParser.raw
 exports.static = require('./lib/additions/static.js')
 exports.text = bodyParser.text
@@ -219,7 +211,7 @@ exports.response = res
  */
 
 // exports.Route = Route;
-exports.Router = require('./lib/routing/request-router-constructor')
+exports.Router = createApplication
 
 exports.uwsCompat = require('./lib/uwsCompat').uwsCompat
 
