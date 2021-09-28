@@ -86,7 +86,7 @@ const appCore = function (options, server, app) {
           onerror: app.logerror
         })
 
-        if (req.rData_internal.method !== 'OPTIONS') {
+        if (req.method !== 'OPTIONS') {
           return fh(err)
         }
 
