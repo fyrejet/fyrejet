@@ -1,6 +1,6 @@
  
 
-# Fyrejet 3
+# Fyrejet 4
 
 <img src="./fyre.png" alt="logo" height="150" width="150" />
 
@@ -10,15 +10,14 @@ Fyrejet is a web-framework that is designed for speed and ease-of-use. After wor
 
 Unfortunately, that comes at a cost. While Express brings the speed of development, its performance is just okay-ish. Other frameworks either provide different APIs, are incompatible with Express middlewares or provide less functionality. For instance, Restana, a great API-oriented framework by jkybernees provides incredible performance, but only a subset of Express APIs, making it not suitable as an Express replacement. Moreover, Express relies on `Object.setPrototypeOf` in request handling, which is inherently slow (see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf) and whose performance has drastically decreased after Node.js 12.18.1 was released.
 
-Fyrejet does not strive to be the fastest framework. However, Fyrejet seeks to be faster than Express, while providing very Express-like API. In fact, Fyrejet uses slightly modified<sup>[1](#footnote1)</sup> Express automated unit tests to verify the codebase. Moreover, Fyrejet offers you the ability to use Express APIs with uWebSockets.js (not production ready yet).
+Fyrejet previously did not strive to be the fastest framework, seeking instead to only provide Express-like API and better performance. However, Fyrejet is now aimed at becoming one of the fastest pure Node.js full-featured frameworks, without using native code. In fact, Fyrejet uses slightly modified<sup>[1](#footnote1)</sup> Express tests to verify the codebase. Moreover, Fyrejet offers you the ability to use Express APIs with uWebSockets.js (not production ready yet), if you decide that native Node.js HTTP server is not fast enough for your needs.
 
 Starting with Fyrejet 2.2.x, Fyrejet is only compatible with Node.js 12 and higher.
-
-
 
 <a name="footnote1">[1]</a>: 
 
 * `50` tests removed, because they are arguably irrelevant (`test/Route.js` and `test/Router.js`)
+* `~6` tests removed in Fyrejet 4 that rely on Prototype modification that is not allowed in Fyrejet 4.
 * `~6` tests modified to test a replacement API instead (`req.currentUrl`)
 * Some tests have been removed in 3.x (some `res.send`,  `res.json` and `res.jsonp` tests, because they test removed functionality, that has long been deprecated in Express - namely, ability to set status through these methods)
 * `req.acceptsEncoding()`, `req.acceptsCharset()` and `req.acceptsLanguage()` and `req.hose()` tests are fully removed, since they have been long deprecated.
@@ -51,10 +50,15 @@ Fyrejet is shared with the community under MIT License.
 
 ## Breaking changes from `3.x` to `4.x`
 
-* `res.sendfile` is deleted. Should not significantly impact anyone, as `res.sendfile` is deprecated for a long time in Express 4.
-* Major internal routing & init middleware changes to optimize performance. Behaviour is the same, but over 50% of the code is rewritten or reorganised
 * It is no longer possible to modify Fyrejet's request and response prototypes. If you need to add new request or response functionality, consider adding new functions or objects to `req` and `res` objects via middleware. This change is made to greatly improve performance
+
+* `res.sendfile` is deleted. Should not significantly impact anyone, as `res.sendfile` is deprecated for a long time in Express 4.
+
+* Major internal routing & init middleware changes to optimize performance. Behaviour is the same, but over 50% of the code is rewritten or reorganised
+
 * `app.settings` implementation now relies on proxy object
+
+  
 
 ## Breaking changes from `2.x` to `3.x`
 
@@ -84,11 +88,12 @@ Fyrejet API is very similar to Express API. In general, you are advised to use t
 
 | Capability                |   Type of difference   | Express                                                      | Fyrejet                                                      |
 | ------------------------- | :--------------------: | :----------------------------------------------------------- | ------------------------------------------------------------ |
+| `req` properties          | Difference in behavior | Express provides a wide range of additional `req` properties | Fyrejet provides all core node HTTP properties, such as `req.url` && `req.method`. It also provides Express's `req.path` , `req.query` & `req.originalUrl` property. `req.route` property has different format. All other NON-DEPRECATED Express properties are reimplemented as functions (for performance), so instead of `req.protocol` you should use `req.protocol()` |
 | Routing, general          | Difference in behavior | Express goes through each route in the stack, verifying, whether it is appropriate for the request. When a request is made again, the same operation has to start all over again. | Fyrejet routing and base is basically a fork of Restana and its dependencies, 0http and Trouter. When an initial request is made, like ```GET /hi HTTP/1.1``` Fyrejet finds which routes are appropriate for the request and then caches those routes. This way, Fyrejet will be able to load only the required routes upon a similar request in the future. |
 | Routing, details          | Difference in behavior | Changing req.url or req.method only affects the routes that have not been checked yet. | Changing ```req.url``` or ```req.method``` to a different value makes Fyrejet restart the routing process for your request within Fyrejet instance. All the changes made to data (such as ```res.locals``` or ```req.params```) during routing persist. If you try to change value to the same value (e.g., if ```req.method === "POST"; req.method = "POST"```), nothing occurs. However, if you want to avoid the rerouting in other cases, you can use ```req.setUrl(url)``` and ```req.setMethod(method)```. For more information, see [Rerouting](#Rerouting). |
 | `req.url`                 | Difference in behavior | req.url is modified to reflect the relative url in relation to the middleware route. | You should prefer```req.currentUrl()```.                     |
-| `res.send`                | Non-breaking additions | Provided                                                     | Provided, with very slight modifications (does not affect API compatibility). Also, Fyrejet provides alternative `res.sendLite`, which is unmodified `res.send` from Restana project. It is supposed to be faster and more lightweight, but with different functionality (no ETags, for example, but it is capable of sending objects faster and setting headers directly). See Restana's [documentation on `res.send`](https://github.com/jkyberneees/restana#the-ressend-method) for information on `res.sendLite` behavior. |
-| Route-wide no etag option | Non-breaking additions | N/A                                                          | Fyrejet allows you to switch off etag for a specific route.  |
+| `res.send` and `res.json` | Non-breaking additions | Provided                                                     | Provided, with slight modifications (functionality deprecated in Express 4 is removed). Also, Fyrejet provides alternative `res.sendLite`, which is modified `res.send` from Restana project. It is supposed to be faster and more lightweight, but with different functionality (no ETags, for example, but it is capable of sending objects faster and setting headers directly). See Restana's [documentation on `res.send`](https://github.com/jkyberneees/restana#the-ressend-method) for information on `res.sendLite` behavior. |
+| Route-wide no etag option | Non-breaking additions | N/A                                                          | Fyrejet allows you to switch off etag for a specific route.<br />To do so, declare routes with `noEtag` as final argument:<br />`app.get('/route', (req,res) => {}, 'noEtag')` |
 
 
 
@@ -135,12 +140,12 @@ use uWebSockets
 
 Fyrejet uses four Initialization-time settings inherited from Restana<sup>[2](#footnote2)</sup>. These are:
 
-| Setting                          | Default value   | Type               | Description                                                  |
-| -------------------------------- | --------------- | ------------------ | ------------------------------------------------------------ |
-| `cacheSize` or `routerCacheSize` | `1000`          | `Number` (integer) | How many different requests can be cached for future use. Request in this case means a combination of `req.method + req.url` |
-| `defaultRoute`                   | See source code | `Function`         | Best not to change, unless you know what you are doing. Check restana documentation. |
-| `prioRequestsProcessing`         | `true`          | `Boolean`          | If `true`, HTTP requests processing/handling is prioritized using `setImmediate`. Usually does not need to be changed and you are advised not to change it, unless you know what you are doing. uWebSockets is a known exception to this rule. |
-| `errorHandler`                   | See description | `Function`         | Optional global error handler function. Default value: `(err, req, res) => { res.statusCode = 500; res.end(err.message) ` |
+| Setting                          | Default value                                                | Type               | Description                                                  |
+| -------------------------------- | ------------------------------------------------------------ | ------------------ | ------------------------------------------------------------ |
+| `cacheSize` or `routerCacheSize` | `1000`                                                       | `Number` (integer) | How many different requests can be cached for future use. Request in this case means a combination of `req.method + req.url`. The cache is using LRU algorithm |
+| `defaultRoute`                   | See source code                                              | `Function`         | Best not to change, unless you know what you are doing. Check restana documentation. |
+| `prioRequestsProcessing`         | `true`                                                       | `Boolean`          | If `true`, HTTP requests processing/handling is prioritized using `setImmediate`. Usually does not need to be changed and you are advised not to change it, unless you know what you are doing. uWebSockets is a known exception to this rule. |
+| `errorHandler`                   | `(err, req, res) => { res.statusCode = 500; res.end(err.message) ` | `Function`         | Optional global error handler function.                      |
 
 
 
@@ -273,9 +278,7 @@ app.get('/hi', (req, res, next) => {
 
 #### Caveats
 
-No known caveats yet.
-
-
+No known caveats.
 
 ## uWebSockets.js
 
@@ -353,34 +356,11 @@ Take note that Fyrejet with `uWebSockets.js` should perform much better on Linux
 
 Take note that if you don't need Express features, such as Etag & other caching features, Restana's `res.sendLite` is going to provide you with performance more similar to Fastify. In that case, Fyrejet is gonna provide `37032.2 req/s` or `41220 req/s` under uWS.
 
-### Clustering
+### Clustering under uWebSockets.js
 
 Be aware that `uWebSockets.js` generally doesn't perform on MacOS, FreeBSD and Windows as well as on Linux. It also does not clusterize on non-Linux platforms, [as it depends on certain kernel features](https://github.com/uNetworking/uWebSockets.js/issues/214#issuecomment-547589050). This only affects `uWebSockets.js` (and, by extenstion, `fyrejet.uwsCompat`). As a workaround, consider running your app as separate apps listening on different ports, if using uWebSockets.js, and proxying behind nginx.
 
 
-
-However, Fyrejet itself has no problems with Node.js clustering, as demonstrated by the table below:
-
-```sh
-# in terminal 1 or whatever pleases your soul <3
-
-node ./performance/fyrejet-route-cluster.js 2 
-# 2 is the number of worker processes to use
-# you can also use express-route-cluster.js, which will run on port 4005
-
-# in terminal 2
-
-wrk -t8 -c64 -d5s 'http://localhost:4004/hi'
-```
-
-#### Overall results with clustering
-
-| № of workers | Express, req/s | Fyrejet, req/s | % difference in favor of Fyrejet |
-| ------------ | -------------- | -------------- | -------------------------------- |
-| 1            | 14102.74       | 28903.02       | 105.0                            |
-| 2            | 25568.79       | 51139.34       | 100.0                            |
-| 3            | 35260.33       | 71277.61       | 102.1                            |
-| 4            | 45060.06       | 89265.70       | 98.1                             |
 
 ## Run tests
 
@@ -390,8 +370,6 @@ npm run test
 npm run test-uWS
 ```
 
-
-
 ## Donations
 
 Are welcome.
@@ -399,8 +377,6 @@ Are welcome.
 Currently, you can use PayPal:
 
 https://paypal.me/schamberg97
-
-
 
 ## Support
 
