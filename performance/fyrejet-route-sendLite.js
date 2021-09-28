@@ -8,7 +8,7 @@ app.set('etag', false)
 app.set('x-powered-by', false)
 
 app.get('/hi', function (req, res) {
-  return res.send('')
+  return res.sendLite('')
 })
 
 app.listen(3004)

@@ -20,7 +20,7 @@ if (cluster.isMaster) {
   app.set('x-powered-by', false)
 
   app.get('/hi', function (req, res) {
-    res.sendLite('')
+    res.send('')
   })
 
   app.listen(4004)

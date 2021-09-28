@@ -14,14 +14,13 @@ if (cluster.isMaster) {
 } else {
   const express = require('../index')
 
-  const app = express({
-    prioRequestsProcessing: false, // without this option set to 'false' uWS is going to be extremely sluggish
-    server: express.uwsCompat(),
-    serverType: 'uWebSockets'
-  })
+  const app = express()
+
+  app.set('etag', false)
+  app.set('x-powered-by', false)
 
   app.get('/hi', function (req, res) {
-    res.send('')
+    res.sendLite('')
   })
 
   app.listen(4004)
