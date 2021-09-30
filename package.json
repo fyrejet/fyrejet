@@ -1,6 +1,6 @@
 {
   "name": "fyrejet",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Web Framework for node.js that strives to provide (almost) perfect compatibility with Express, while providing better performance, where you need it.",
   "main": "index.js",
   "scripts": {
