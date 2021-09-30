@@ -12,6 +12,13 @@ describe('req', function () {
         .expect(200, '{}', done)
     })
 
+    it('should handle another "?" in the query', function (done) {
+      var app = createApp()
+      request(app)
+        .get('/?dogs=true?cats=true')
+        .expect(200, '{"dogs":"true?cats=true"}', done)
+    })
+
     it('should default to parse complex keys', function (done) {
       var app = createApp()
 
