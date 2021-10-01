@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint .",
     "test": "mocha --require test/support/env --reporter spec --bail --check-leaks test/ test/acceptance/",
-    "test-uWS": "UWS_SERVER_ENABLED_FOR_TEST=TRUE mocha --require test/support/env --reporter spec --bail --check-leaks test test/acceptance/ --exit",
+    "test-uWS": "./test/do-uWS-test.sh",
     "postinstall": "node ./lib/tasks/postinstall.js"
   },
   "repository": {
@@ -77,12 +77,14 @@
   "devDependencies": {
     "0http": "^3.0.0",
     "after": "0.8.2",
+    "chai": "^4.3.4",
     "connect-redis": "^5.0.0",
     "cookie-parser": "~1.4.4",
     "cookie-session": "^1.4.0",
     "ejs": "2.7.2",
     "eslint": "2.13.1",
     "express-session": "^1.17.1",
+    "fastify": "^3.22.0",
     "hbs": "^4.1.1",
     "marked": "^2.0.1",
     "method-override": "3.0.0",
@@ -90,6 +92,7 @@
     "morgan": "^1.10.0",
     "multiparty": "4.2.2",
     "pbkdf2-password": "1.2.1",
+    "restana": "^4.9.1",
     "should": "13.2.3",
     "standard": "^14.3.4",
     "supertest": "^5.0.0",
