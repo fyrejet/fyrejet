@@ -6,26 +6,31 @@
  * MIT Licensed
  */
 
-const accepts = require('accepts')
-const deprecate = require('depd')('fyrejet')
-const { isIP } = require('net')
-const typeis = require('type-is')
-const fresh = require('fresh')
-const parseRange = require('range-parser')
-const proxyaddr = require('proxy-addr')
+import accepts from 'accepts';
+import depd from 'depd';
+import {isIP} from 'net';
+import typeis from 'type-is';
+import fresh from 'fresh';
+import parseRange from 'range-parser';
+import proxyaddr from 'proxy-addr';
+
+import type { FyrejetRequest, Nullable, TrustFn } from './types';
+
+const deprecate = depd('fyrejet')
 
 module.exports = {
   build,
   req: build(Object.create({}))
 }
 
-function build (req) {
+export function build (req: FyrejetRequest) {
   req.activateExpress = function () {
     // stub function to break as few apps as possible
     return this
   }
 
-  req.get = req.header = function header (name) {
+  //@ts-expect-error: our types are more correct in this regard
+  req.get = req.header = function header (name: string) {
     if (typeof name !== 'string') {
       if (!name) {
         throw new TypeError('name argument is required to req.get')
@@ -44,33 +49,33 @@ function build (req) {
     }
   }
 
-  req.accepts = function reqAccepts (...args) {
-    const accept = accepts(this)
-    return accept.types.apply(accept, args)
-  }
+  req.accepts = function(...args: string[]) : any {
+	var accept = accepts(this);
+	return accept.types.apply(accept, args);
+  };
 
-  req.acceptsEncodings = function (...args) {
+  req.acceptsEncodings = function (...args: string[]) : any {
     const accept = accepts(this)
     return accept.encodings.apply(accept, args)
   }
 
-  req.acceptsCharsets = function (...args) {
+  req.acceptsCharsets = function (...args: string[]) : any {
     const accept = accepts(this)
     return accept.charsets.apply(accept, args)
   }
 
-  req.acceptsLanguages = function (...args) {
+  req.acceptsLanguages = function (...args: string[]) : any {
     const accept = accepts(this)
     return accept.languages.apply(accept, args)
   }
 
-  req.range = function range (size, options) {
+  req.range = function range (size: number, options?: parseRange.Options) : parseRange.Result | parseRange.Ranges | undefined {
     const range = this.headers.range
     if (!range) return
     return parseRange(size, range, options)
   }
 
-  req.param = function param (name, defaultValue) {
+  req.param = function param<T = string> (name: string, defaultValue?: any) : T {
     const params = this.params || {}
     const body = this.body || {}
     const query = this.query || {}
@@ -80,54 +85,46 @@ function build (req) {
       'req.param(' + args + '): Use req.params, req.body, or req.query instead'
     )
 
-    if (params[name] != null && params.hasOwnProperty(name)) { return params[name] }
-    if (body[name] != null) return body[name]
-    if (query[name] != null) return query[name]
+    if (params[name] != null && params.hasOwnProperty(name)) { return params[name] as unknown as T }
+    if (body[name] != null) return body[name] as T
+    if (query[name] != null) return query[name] as T
 
     return defaultValue
   }
 
-  req.is = function is (types) {
-    let arr = types
+  req.is = function is (...types: string[]): string | false | null {
 
-    // support flattened arguments
-    if (!Array.isArray(types)) {
-      arr = new Array(arguments.length)
-      for (let i = 0, j = arr.length; i < j; i++) {
-        arr[i] = arguments[i]
-      }
-    }
-
-    return typeis(this, arr)
+    return typeis(this, types)
   }
 
-  req.protocol = function protocol () {
-    const proto = this.connection.encrypted ? 'https' : 'http'
+  req.protocol = function protocol () : string {
+	// @ts-expect-error: encrypted exists, if https proto is used
+	const {encrypted} = (this.connection)
+    const proto = encrypted ? 'https' : 'http'
 
-    const trust = this.app.__settings.get('trust proxy fn')
+    const trust = this.app.__settings.get('trust proxy fn') as TrustFn
 
-    if (!trust(this.connection.remoteAddress, 0)) {
+    if (!trust(this.connection.remoteAddress as string, 0)) {
       return proto
     }
 
-    // Note: X-Forwarded-Proto is normally only ever a
-    //       single value, but this is to be safe.
-    const header = this.headers['x-forwarded-proto'] || proto
+    // Note: X-Forwarded-Proto is normally only ever a single value, but this is to be safe.
+    const header = (this.headers['x-forwarded-proto'] as Nullable<string>) || proto
     const index = header.indexOf(',')
     return index !== -1 ? header.substring(0, index).trim() : header.trim()
   }
 
-  req.secure = function secure () {
+  req.secure = function secure () : boolean {
     return this.protocol() === 'https'
   }
 
-  req.ip = function ip () {
-    const trust = this.app.__settings.get('trust proxy fn')
+  req.ip = function ip () : string {
+    const trust = this.app.__settings.get('trust proxy fn') as TrustFn
     return proxyaddr(this, trust)
   }
 
-  req.ips = function ips () {
-    const trust = this.app.__settings.get('trust proxy fn')
+  req.ips = function ips () : string[] {
+    const trust = this.app.__settings.get('trust proxy fn') as TrustFn
     const addrs = proxyaddr.all(this, trust)
 
     // reverse the order (to farthest -> closest)
@@ -137,12 +134,12 @@ function build (req) {
     return addrs
   }
 
-  req.subdomains = function subdomains () {
+  req.subdomains = function subdomains () : string[] {
     const hostname = this.hostname()
 
     if (!hostname) return []
 
-    const offset = this.app.__settings.get('subdomain offset')
+    const offset = this.app.__settings.get('subdomain offset') as number
     const subdomains = !isIP(hostname)
       ? hostname.split('.').reverse()
       : [hostname]
@@ -150,23 +147,23 @@ function build (req) {
     return subdomains.slice(offset)
   }
 
-  req.setUrl = function setUrl (url) {
+  req.setUrl = function setUrl (url: string) : FyrejetRequest {
     this.url = url
     this.rData_internal.urlPrev = url
     return this
   }
 
-  req.setMethod = function setMethod (method) {
+  req.setMethod = function setMethod (method: string) : FyrejetRequest {
     this.method = method
     this.rData_internal.methodPrev = method
     return this
   }
 
-  req.hostname = function hostname () {
-    const trust = this.app.__settings.get('trust proxy fn')
-    let host = this.headers['x-forwarded-host']
+  req.hostname = function hostname () : Nullable<string> {
+    const trust = this.app.__settings.get('trust proxy fn') as TrustFn
+    let host = this.headers['x-forwarded-host'] as Nullable<string>
 
-    if (!host || !trust(this.connection.remoteAddress, 0)) {
+    if (!host || !trust(this.connection.remoteAddress as string, 0)) {
       host = this.headers.host
     } else if (host.indexOf(',') !== -1) {
       // Note: X-Forwarded-Host is normally only ever a
@@ -183,7 +180,7 @@ function build (req) {
     return index !== -1 ? host.substring(0, index) : host
   }
 
-  req.fresh = function reqFresh () {
+  req.fresh = function reqFresh () : boolean {
     const method = this.method
 
     // GET or HEAD for weak freshness validation only
@@ -203,29 +200,34 @@ function build (req) {
     return false
   }
 
-  req.baseUrl = function baseUrl () {
+  req.baseUrl = function baseUrl () : string {
     const baseUrl = this.originalUrl.replace(this.currentUrl(), '')
     return baseUrl
   }
 
-  req.currentUrl = function currentUrl () {
-    const route = this.route
+  req.currentUrl = function currentUrl () : string {
+    const route = this.route 
     if (route.middleware) {
-      let url = this.url.replace(route.pattern, '')
+      let url = (this.url as string).replace(route.pattern, '')
       url = url || '/'
       return url
     }
-    return this.url
+    return this.url as string
   }
 
-  req.stale = function stale () {
+  req.stale = function stale () : boolean {
     return !this.fresh()
   }
 
-  req.xhr = function xhr () {
-    const val = this.headers['x-requested-with'] || ''
+  req.xhr = function xhr () : boolean {
+    const val = (this.headers['x-requested-with'] as Nullable<string>) || ''
     return val.toLowerCase() === 'xmlhttprequest'
   }
 
   return req
 }
+
+const req = build(Object.create({}));
+export {req};
+
+export default build;

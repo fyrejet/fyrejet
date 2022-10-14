@@ -1,7 +1,7 @@
 
 var assert = require('assert')
 var Buffer = require('safe-buffer').Buffer
-var utils = require('../lib/utils')
+var utils = require('../dist/utils')
 
 describe('utils.etag(body, encoding)', function () {
   it('should support strings', function () {

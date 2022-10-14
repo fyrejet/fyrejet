@@ -1,10 +1,13 @@
 'use strict'
 
-const { build: requestExtend } = require('../request')
+import { FyrejetApp, FyrejetResponse, NextFunction } from "../types"
+import { FyrejetRequest } from "../types/request"
+
+import {build as requestExtend} from '../request'
 const { build: responseExtend } = require('../response')
 
-const init = function (router) {
-  const initMiddleware = (req, res, next) => { // this function actually enables all the express-like kinkiness ;)
+const init = function (router: FyrejetApp) {
+  const initMiddleware = (req: FyrejetRequest, res: FyrejetResponse, next: NextFunction) => { // this function actually enables all the express-like kinkiness ;)
     if (req.rData_internal.initDone) {
       if (req.app.id !== router.id) {
         req.rData_internal.appPrev.push(req.app)

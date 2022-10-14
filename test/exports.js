@@ -45,36 +45,36 @@ describe("exports", function () {
     express.response.send.should.be.a.Function();
   });
 
-  //it('should permit modifying the .application prototype', function () {
-  //  express.application.foo = function () { return 'bar' }
-  //  express().foo().should.equal('bar')
-  //})
-  //
-  //it('should permit modifying the .request prototype', function (done) {
-  //  express.request.foo = function () { return 'bar' }
-  //  var app = express()
-  //
-  //  app.use(function (req, res, next) {
-  //    res.end(req.foo())
-  //  })
-  //
-  //  request(app)
-  //    .get('/')
-  //    .expect('bar', done)
-  //})
-  //
-  //it('should permit modifying the .response prototype', function (done) {
-  //  express.response.foo = function () { this.send('bar') }
-  //  var app = express()
-  //
-  //  app.use(function (req, res, next) {
-  //    res.foo()
-  //  })
-  //
-  //  request(app)
-  //    .get('/')
-  //    .expect('bar', done)
-  //})
+  it.skip('should permit modifying the .application prototype', function () {
+    express.application.foo = function () { return 'bar' }
+    express().foo().should.equal('bar')
+  })
+  
+  it.skip('should permit modifying the .request prototype', function (done) {
+    express.request.foo = function () { return 'bar' }
+    var app = express()
+  
+    app.use(function (req, res, next) {
+      res.end(req.foo())
+    })
+  
+    request(app)
+      .get('/')
+      .expect('bar', done)
+  })
+  
+  it.skip('should permit modifying the .response prototype', function (done) {
+    express.response.foo = function () { this.send('bar') }
+    var app = express()
+  
+    app.use(function (req, res, next) {
+      res.foo()
+    })
+  
+    request(app)
+      .get('/')
+      .expect('bar', done)
+  })
 
   // Modifying prototype is a bad idea and performance liability.
 

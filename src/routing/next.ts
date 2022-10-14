@@ -1,31 +1,13 @@
-'use strict'
+import onChange from 'on-change'
+import fastDecode from 'fast-decode-uri-component'
+import { FyrejetRequest, FyrejetResponse, Middleware } from '../types'
+import { ErrorHandler, FinalRoute } from './types'
 
-const onChange = require('on-change')
-const fastDecode = require('fast-decode-uri-component')
-
-function next (middlewares, middlewaresArgsNum, req, res, index, routeIndex, routers = {}, defaultRoute, errorHandler, error) {
-  function nextRunErrLoop (errMiddlewareIndex) { // used for error handling
-    for (let n = index, o = middlewares.length; n < o; n++) {
-      const argsNum = middlewaresArgsNum[n]
-      if (argsNum >= 4) {
-        errMiddlewareIndex = n
-        return errMiddlewareIndex
-      }
-    }
-  }
-
-  if (index === 0) {
-    req.stepString = step.toString()
-    req.route = req.routesToProcess[0]
-    return paramOrNot(() => middlewares[0](req, res, step))
-  }
-  const middlewareArgsNum = middlewaresArgsNum[index]
-
-  if (!middlewares[index]) return defaultRoute(req, res)
+export function next (middlewares: Middleware[], middlewaresArgsNum: number[], req: FyrejetRequest, res: FyrejetResponse, index: number, routeIndex: number, routers = {}, defaultRoute: FinalRoute, errorHandler: ErrorHandler, error?: Error | null) {
 
   function paramOrNot (cb) {
-    if (!req.currentRouteMiddlewareNum) {
-      req.currentRouteMiddlewareNum = 0
+    if (!req.rData_internal.currentRouteMiddlewareNum) {
+      req.rData_internal.currentRouteMiddlewareNum = 0
       if (req.route.keys.length) { // we don't want to extract params at EVERY middleware and at routes with no keys
         if (!req.rData_internal.urlProperVerified) {
           res.statusCode = 400
@@ -35,11 +17,11 @@ function next (middlewares, middlewaresArgsNum, req, res, index, routeIndex, rou
         getParams(req.route)
       }
     }
-    ++req.currentRouteMiddlewareNum
+    ++req.rData_internal.currentRouteMiddlewareNum
 
-    if ((req.route.handlers.length) === req.currentRouteMiddlewareNum) {
+    if ((req.route.handlers.length) === req.rData_internal.currentRouteMiddlewareNum) {
       routeIndex++
-      delete req.currentRouteMiddlewareNum
+      delete req.rData_internal.currentRouteMiddlewareNum
     }
     return cb()
   }
@@ -118,7 +100,7 @@ function next (middlewares, middlewaresArgsNum, req, res, index, routeIndex, rou
     }
   }
 
-  function step (err) {
+  function step (err: any) {
     let errMiddlewareIndex // together with runErrLoop this is used for error handling
     function runErrLoop () {
       for (let n = index, o = middlewaresArgsNum.length; n < o; n++) {
@@ -129,7 +111,7 @@ function next (middlewares, middlewaresArgsNum, req, res, index, routeIndex, rou
         }
       }
     }
-    if (!(req.params === Object(req.params))) req.params = req.rData_internal.paramsPrev[req.rData_internal.paramsPrev.length - 1] || {}
+    if (!(req.params === Object(req.params))) req.params = req.rData_internal.paramsPrev?.[req.rData_internal.paramsPrev.length - 1] || {}
     if (req.routesToProcess[routeIndex]) req.rData_internal.lastPattern = req.routesToProcess[routeIndex].pattern
 
     switch (err) {
@@ -137,20 +119,20 @@ function next (middlewares, middlewaresArgsNum, req, res, index, routeIndex, rou
       case undefined:
         return stepNormally()
       case 'route':
-        if (req.currentRouteMiddlewareNum) {
-          const middlewaresPassed = req.currentRouteMiddlewareNum
+        if (req.rData_internal.currentRouteMiddlewareNum) {
+          const middlewaresPassed = req.rData_internal.currentRouteMiddlewareNum
           const middlewaresTotal = req.routesToProcess[routeIndex].handlers.length
           const middlewaresToSkip = middlewaresTotal - middlewaresPassed
           index = index + middlewaresToSkip + 1
           req.paramsCalled = {}
           routeIndex++
-          delete req.currentRouteMiddlewareNum
+          delete req.rData_internal.currentRouteMiddlewareNum
           return next(middlewares, middlewaresArgsNum, req, res, index, routeIndex, routers, defaultRoute, errorHandler)
         }
         return stepNormally()
       case 'router':
-        if (req.currentRouteMiddlewareNum) {
-          delete req.currentRouteMiddlewareNum
+        if (req.rData_internal.currentRouteMiddlewareNum) {
+          delete req.rData_internal.currentRouteMiddlewareNum
         }
         req.paramsCalled = {}
         return next(middlewares, middlewaresArgsNum, req, res, middlewares.length - 1, routeIndex, routers, defaultRoute, errorHandler)
@@ -167,8 +149,8 @@ function next (middlewares, middlewaresArgsNum, req, res, index, routeIndex, rou
 
     function stepNormally () {
       if (req.rData_internal.methodPrev !== req.method || req.rData_internal.urlPrev !== req.url) {
-        req.rData_internal.methodPrev = req.method
-        req.rData_internal.urlPrev = req.url
+        req.rData_internal.methodPrev = req.method as string
+        req.rData_internal.urlPrev = req.url as string
         return req.app.getRouter().lookup(req, res, step)
       }
       let newIndex
@@ -195,12 +177,6 @@ function next (middlewares, middlewaresArgsNum, req, res, index, routeIndex, rou
     }
   }
 
-  req.route = req.routesToProcess[routeIndex]
-  req.next = step
-  if (!req.route) return res.defaultErrHandler()
-
-  return paramOrNot(finishStage)
-
   function finishStage () {
     try {
       if (middlewares[index].id) {
@@ -209,7 +185,7 @@ function next (middlewares, middlewaresArgsNum, req, res, index, routeIndex, rou
           req.rData_internal.urlPrevious.push(req.url)
 
           const mountpath = middlewares[index].getRouter().getSequentialConfig().mountpath || pattern
-          req.url = req.url.replace(mountpath, '')
+          req.url = (req.url as string).replace(mountpath, '')
 
           delete req.rData_internal.lastPattern
         }
@@ -225,12 +201,24 @@ function next (middlewares, middlewaresArgsNum, req, res, index, routeIndex, rou
       }
       return middlewares[index](req, res, step)
     } catch (err) {
-      let errMiddlewareIndex
-      nextRunErrLoop(errMiddlewareIndex)
-      if (errMiddlewareIndex) return middlewares[errMiddlewareIndex](err, req, res, step)
       return errorHandler(err, req, res)
     }
   }
+
+  if (index === 0) {
+    req.stepString = step.toString()
+    req.route = req.routesToProcess[0]
+    return paramOrNot(() => middlewares[0](req, res, step))
+  }
+  const middlewareArgsNum = middlewaresArgsNum[index]
+
+  if (!middlewares[index]) return defaultRoute(req, res)
+
+  req.route = req.routesToProcess[routeIndex]
+  req.next = step
+  if (!req.route) return res.defaultErrHandler()
+
+  return paramOrNot(finishStage)
 }
 
-module.exports = next
+export default next

@@ -6,26 +6,31 @@
  * MIT Licensed
  */
 
-const Buffer = require('safe-buffer').Buffer
-const contentDisposition = require('content-disposition')
-const deprecate = require('depd')('fyrejet')
-const encodeUrl = require('encodeurl')
-const escapeHtml = require('escape-html')
-const { isAbsolute } = require('./utils')
-const onFinished = require('on-finished')
-const path = require('path')
-const statuses = require('statuses')
-const { merge } = require('./utils')
-const { sign } = require('cookie-signature')
-const { normalizeType } = require('./utils')
-const { normalizeTypes } = require('./utils')
-const { setCharset, forEachObject } = require('./utils')
-const cookie = require('cookie')
-const send = require('send')
+import {Buffer} from 'safe-buffer'
+import contentDisposition from 'content-disposition'
+import depd from 'depd'
+
+import encodeUrl from 'encodeurl'
+import escapeHtml from 'escape-html'
+
+import { isAbsolute, merge, normalizeType, normalizeTypes, setCharset, forEachObject, ExtendableError } from './utils'
+import onFinished from 'on-finished'
+import path from 'path'
+import statuses from 'statuses'
+
+import {sign} from 'cookie-signature'
+import cookie from 'cookie'
+import send from 'send'
+import vary from 'vary'
+
+import type { EtagFn, FyrejetResponse, Nullable, StringifyReplacer } from './types'
+import EventEmitter from 'events'
+import { Readable } from 'stream'
+
+const deprecate = depd('fyrejet')
 const extname = path.extname
 const mime = send.mime
 const resolve = path.resolve
-const vary = require('vary')
 
 module.exports = {
   build,
@@ -46,8 +51,8 @@ const LOCATION = 'Location'
 
 const NOOP = () => {}
 
-function build (res) {
-  const parseErr = (error) => {
+function build (res: FyrejetResponse) {
+  const parseErr = (error: any) => {
     const errorCode = error.status || error.code || error.statusCode
     const statusCode = typeof errorCode === 'number' ? errorCode : 500
 
@@ -61,12 +66,12 @@ function build (res) {
     }
   }
 
-  res.status = function status (code) {
+  res.status = function status (code: number) {
     this.statusCode = code
     return this
   }
 
-  res.links = function (links) {
+  res.links = function (links: Record<string, string>) {
     let link = this.getHeader('Link') || ''
     if (link) link += ', '
     return this.setHeader(
@@ -82,8 +87,8 @@ function build (res) {
 
   res.send = function send (body, ...args) {
     if (args.length) {
-      body = [body, ...args]
-      return resJson(this, body)
+		// if there are mote arguments - we will send everything as if res.json was called
+    	return res.json(body, ...args)
     }
 
     switch (typeof body) {
@@ -113,11 +118,12 @@ function build (res) {
           return resSend(this, body)
         }
         return resJson(this, body) // no need to go through checks for deprecated functionality
+	  default:
+		return resSend(this, body)
     }
-    return resSend(this, body)
   }
 
-  function resSend (res, body) {
+  function resSend (res: FyrejetResponse, body: unknown) {
     // split to avoid deprecation checks when returning from resJson or res.json
     const req = res.req
 
@@ -140,7 +146,7 @@ function build (res) {
     ) {
       let etag
       // determine if ETag should be generated
-      const etagFn = app.__settings.get('etag fn')
+      const etagFn = app.__settings.get('etag fn') as EtagFn
 
       // populate ETag
       if (etagFn && (etag = etagFn(body))) {
@@ -164,8 +170,7 @@ function build (res) {
       body = ''
     }
 
-    res.end(req.method === 'HEAD' ? null : body)
-    return res
+    return res.end(req.method === 'HEAD' ? null : body)
   }
 
   res.json = function json (obj, ...args) {
@@ -177,13 +182,13 @@ function build (res) {
     return resJson(this, val)
   }
 
-  function resJson (res, val) {
+  function resJson (res: FyrejetResponse, val: unknown) {
     // this is split, so we can avoid checks for deprecated functionality
     // settings
     const app = res.app
-    const escape = app.__settings.get('json escape')
-    const replacer = app.__settings.get('json replacer')
-    const spaces = app.__settings.get('json spaces')
+    const escape = app.__settings.get('json escape') as boolean
+    const replacer = app.__settings.get('json replacer') as StringifyReplacer
+    const spaces = app.__settings.get('json spaces') as string | number
     const body = stringify(val, replacer, spaces, escape)
 
     // content-type
@@ -203,11 +208,11 @@ function build (res) {
 
     // settings
     const app = this.app
-    const escape = app.__settings.get('query parser fn')
-    const replacer = app.__settings.get('json replacer')
-    const spaces = app.__settings.get('json spaces')
+    const escape = app.__settings.get('query parser fn') as boolean
+    const replacer = app.__settings.get('json replacer') as StringifyReplacer
+    const spaces = app.__settings.get('json spaces') as number | string
     let body = stringify(val, replacer, spaces, escape)
-    let callback = this.req.query[app.__settings.get('jsonp callback name')]
+    let callback = this.req.query[app.__settings.get('jsonp callback name') as string]
 
     // content-type
     if (!this.getHeader(CONTENT_TYPE_HEADER)) {
@@ -248,7 +253,8 @@ function build (res) {
   }
 
   res.sendStatus = function sendStatus (statusCode) {
-    const body = statuses[statusCode] || String(statusCode)
+	const codeExists = statuses.codes.includes(statusCode)
+    const body = codeExists ? statuses(statusCode) : String(statusCode)
 
     this.statusCode = statusCode
     return this.type('txt').send(body)
@@ -344,7 +350,7 @@ function build (res) {
     return this.set(CONTENT_TYPE_HEADER, ct)
   }
 
-  res.format = function (obj) {
+  res.format = function (obj: any) {
     const req = this.req
     const next = req.next
 
@@ -352,7 +358,7 @@ function build (res) {
     if (fn) delete obj.default
     const keys = Object.keys(obj)
 
-    const key = keys.length > 0 ? req.accepts(keys) : false
+    const key = keys.length > 0 ? (req.accepts(...keys)) : false
 
     this.vary('Accept')
 
@@ -366,7 +372,7 @@ function build (res) {
       return this
     }
 
-    const err = new Error('Not Acceptable')
+    const err = new ExtendableError('Not Acceptable')
     err.status = err.statusCode = 406
     err.types = normalizeTypes(keys).map(function (o) {
       return o.value
@@ -393,7 +399,7 @@ function build (res) {
     if (prev) {
       // concat the new and prev vals
       value = Array.isArray(prev)
-        ? prev.concat(val)
+        ? prev.concat(val as string[])
         : Array.isArray(val)
           ? [prev].concat(val)
           : [prev, val]
@@ -402,7 +408,7 @@ function build (res) {
     return this.set(field, value)
   }
 
-  res.set = res.header = function header (field, val) {
+  res.set = res.header = function header (field: string, val: unknown) {
     if (val) {
       let value = Array.isArray(val) ? val.map(String) : String(val)
 
@@ -428,7 +434,7 @@ function build (res) {
     return this
   }
 
-  res.get = function (field) {
+  res.get = function (field: string) {
     return this.getHeader(field)
   }
 
@@ -438,7 +444,7 @@ function build (res) {
     return this.cookie(name, '', opts)
   }
 
-  res.cookie = function (name, value, options) {
+  res.cookie = function (name: string, value: string, options) {
     const opts = merge({}, options)
     const secret = this.req.secret
     const signed = opts.signed
@@ -468,19 +474,19 @@ function build (res) {
     return this
   }
 
-  res.location = function location (url) {
+  res.location = function location (url: string) {
     let loc = url
 
     // "back" is an alias for the referrer
     if (url === 'back') {
-      loc = this.req.get('Referrer') || '/'
+      loc = (this.req.get('Referrer') as string) || '/'
     }
 
     // set location
     return this.set(LOCATION, encodeUrl(loc))
   }
 
-  res.redirect = function redirect (url, arg2) {
+  res.redirect = function redirect (url: string, arg2: string | number) {
     let address = url
     let body
     let status = 302
@@ -489,29 +495,30 @@ function build (res) {
     if (arg2) {
       if (typeof url === 'number') {
         status = url
-        address = arg2
+        address = arg2 as string
       } else {
         deprecate(
           'res.redirect(url, status): Use res.redirect(status, url) instead'
         )
-        status = arg2
+        status = arg2 as number
       }
     }
 
     // Set location header
-    address = this.location(address).get(LOCATION)
+    address = this.location(address).get(LOCATION) as string
 
     // Support text/{plain,html} by default
+	const statusText = (statuses.codes.includes(status) ? statuses(status) : undefined)
     this.format({
       text: function () {
-        body = statuses[status] + '. Redirecting to ' + address
+        body = statusText + '. Redirecting to ' + address
       },
 
       html: function () {
         const u = escapeHtml(address)
         body =
           '<p>' +
-          statuses[status] +
+          statusText +
           '. Redirecting to <a href="' +
           u +
           '">' +
@@ -537,7 +544,7 @@ function build (res) {
     return this
   }
 
-  res.vary = function (field) {
+  res.vary = function (field: string) : FyrejetResponse {
     // checks for back-compat
     if (!field || (Array.isArray(field) && !field.length)) {
       deprecate('res.vary(): Provide a field name')
@@ -577,7 +584,7 @@ function build (res) {
     app.render(view, opts, done)
   }
 
-  res.sendLite = function (data, code, headers, cb) {
+  res.sendLite = function (data?, code?, headers?, cb?) {
     const res = this
 
     code = code || res.statusCode
@@ -595,7 +602,7 @@ function build (res) {
       data = err.data
     } else {
       if (headers && typeof headers === 'object') {
-        forEachObject(headers, (value, key) => {
+        forEachObject<string>(headers, (key, value) => {
           res.setHeader(key.toLowerCase(), value)
         })
       }
@@ -614,22 +621,24 @@ function build (res) {
         } else if (typeof data === 'object') {
           if (data instanceof Buffer) {
             if (!contentType) contentType = TYPE_OCTET
-          } else if (typeof data.pipe === 'function') {
+          } 
+		  else if (data instanceof EventEmitter && typeof (data as unknown as Readable).pipe === 'function') {
             if (!contentType) contentType = TYPE_OCTET
             // NOTE: we exceptionally handle the response termination for streams
             if (contentType) {
               res.setHeader(CONTENT_TYPE_HEADER, contentType)
             }
-            res.statusCode = code
+            res.statusCode = code;
 
-            data.pipe(res)
+            (data as unknown as Readable).pipe(res)
             data.on('end', cb)
 
             return
           } else if (Promise.resolve(data) === data) {
             // http://www.ecma-international.org/ecma-262/6.0/#sec-promise.resolve
+			// means we have a Promise as data
             headers = null
-            return data
+            return (data as Promise<unknown>)
               .then((resolved) => res.sendLite(resolved, code, headers, cb))
               .catch((err) => res.sendLite(err, code, headers, cb))
           } else {
@@ -648,16 +657,16 @@ function build (res) {
   }
 
   // pipe the send file stream
-  function sendfile (res, file, options, callback) {
+  function sendfile (res: FyrejetResponse, file: send.SendStream, options: Record<string, string>, callback: (err?: ExtendableError) => void) {
     let done = false
-    let streaming
+    let streaming : Nullable<boolean>
 
     // request aborted
     function onaborted () {
       if (done) return
       done = true
 
-      const err = new Error('Request aborted')
+      const err = new ExtendableError('Request aborted')
       err.code = 'ECONNABORTED'
       callback(err)
     }
@@ -667,13 +676,13 @@ function build (res) {
       if (done) return
       done = true
 
-      const err = new Error('EISDIR, read')
+      const err = new ExtendableError('EISDIR, read')
       err.code = 'EISDIR'
       callback(err)
     }
 
     // errors
-    function onerror (err) {
+    function onerror (err: ExtendableError) {
       if (done) return
       done = true
       callback(err)
@@ -692,7 +701,7 @@ function build (res) {
     }
 
     // finished
-    function onfinish (err) {
+    function onfinish (err?: ExtendableError | null) {
       if (err && err.code === 'ECONNRESET') return onaborted()
       if (err) return onerror(err)
       if (done) return
@@ -738,7 +747,7 @@ function build (res) {
     file.pipe(res)
   }
 
-  function stringify (value, replacer, spaces, escape) {
+  function stringify (value: unknown, replacer: StringifyReplacer, spaces: string|number, escape: boolean) {
     // v8 checks arguments.length for optimizing simple call
     // https://bugs.chromium.org/p/v8/issues/detail?id=4730
     let json =
