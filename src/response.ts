@@ -23,7 +23,7 @@ import cookie from 'cookie'
 import send from 'send'
 import vary from 'vary'
 
-import type { EtagFn, FyrejetResponse, Nullable, StringifyReplacer } from './types'
+import type { CookieOptions, EtagFn, FyrejetResponse, Nullable, StringifyReplacer } from './types'
 import EventEmitter from 'events'
 import { Readable } from 'stream'
 
@@ -31,11 +31,6 @@ const deprecate = depd('fyrejet')
 const extname = path.extname
 const mime = send.mime
 const resolve = path.resolve
-
-module.exports = {
-  build,
-  res: build(Object.create({}))
-}
 
 const charsetRegExp = /;\s*charset\s*=/
 
@@ -51,7 +46,9 @@ const LOCATION = 'Location'
 
 const NOOP = () => {}
 
-function build (res: FyrejetResponse) {
+export const res = build({} as FyrejetResponse)
+
+export function build (res: FyrejetResponse) {
   const parseErr = (error: any) => {
     const errorCode = error.status || error.code || error.statusCode
     const statusCode = typeof errorCode === 'number' ? errorCode : 500
@@ -438,14 +435,14 @@ function build (res: FyrejetResponse) {
     return this.getHeader(field)
   }
 
-  res.clearCookie = function clearCookie (name, options) {
+  res.clearCookie = function clearCookie (name: string, options?: CookieOptions) {
     const opts = merge({ expires: new Date(1), path: '/' }, options)
 
     return this.cookie(name, '', opts)
   }
 
-  res.cookie = function (name: string, value: string, options) {
-    const opts = merge({}, options)
+  res.cookie = function (name: string, value: string, options?: CookieOptions) : FyrejetResponse {
+    const opts = {...options}
     const secret = this.req.secret
     const signed = opts.signed
 
@@ -457,10 +454,10 @@ function build (res: FyrejetResponse) {
       typeof value === 'object' ? 'j:' + JSON.stringify(value) : String(value)
 
     if (signed) {
-      val = 's:' + sign(val, secret)
+      val = 's:' + sign(val, secret as string)
     }
 
-    if ('maxAge' in opts) {
+    if (opts.maxAge) {
       opts.expires = new Date(Date.now() + opts.maxAge)
       opts.maxAge /= 1000
     }
@@ -738,7 +735,7 @@ function build (res: FyrejetResponse) {
 
         for (let i = 0, j = keys.length; i < j; i++) {
           const k = keys[i]
-          res.setHeader(k, obj[k])
+          res.setHeader(k, obj[k as unknown as number])
         }
       })
     }

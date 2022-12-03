@@ -24,7 +24,7 @@ export type Middleware = ((req: FyrejetRequest, res: FyrejetResponse, next: Next
 }
 
 export type Params = {
-	[k: string]: string;
+	[k: string]: unknown;
 }
 
 type RouteFormerMethods = {

@@ -1,8 +1,6 @@
 /**
- * Expose `pathtoRegexp`.
+ * Expose `pathToRegexp`.
  */
-
- module.exports = pathtoRegexp;
 
  /**
   * Match matching groups in a regular expression.
@@ -37,7 +35,7 @@
 	 sensitive?: boolean,
  }
  
-export function pathtoRegexp(path: string|RegExp|string[], keys: Key[], options?: PathToRegexpOptions) : string|RegExp|string[] {
+export function pathToRegexp(path: string|RegExp|string[], keys: Key[], options?: PathToRegexpOptions) : string|RegExp|string[] {
    options = options || {};
    keys = keys || [];
    const strict = options.strict;
@@ -66,7 +64,7 @@ export function pathtoRegexp(path: string|RegExp|string[], keys: Key[], options?
 	 // the same keys and options instance into every generation to get
 	 // consistent matching groups before we join the sources together.
 	 path = path.map(function (value) {
-	   return (pathtoRegexp(value, keys, options) as RegExp).source;
+	   return (pathToRegexp(value, keys, options) as RegExp).source;
 	 });
  
 	 return new RegExp('(?:' + path.join('|') + ')', flags);
@@ -140,4 +138,4 @@ export function pathtoRegexp(path: string|RegExp|string[], keys: Key[], options?
    return new RegExp(path, flags);
  };
 
- export default pathtoRegexp
+ export default pathToRegexp

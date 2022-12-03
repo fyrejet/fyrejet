@@ -48,7 +48,7 @@ export type FyrejetRequest = FyrejetRequestUnitialized & {
 		urlProperVerified?: string,
 		initDone?: boolean,
 		lastPattern?: string | RegExp,
-		paramsPrev?: Params[],
+		paramsPrev: Params[],
 		encodingSet?: boolean,
 		currentRouteMiddlewareNum?: number
 	},
@@ -57,7 +57,7 @@ export type FyrejetRequest = FyrejetRequestUnitialized & {
 	next: NextFunction,
 	stepString?: string,
 	paramsCalled: Record<string|number, string>,
-	paramsUserDefined?: string[]
+	paramsUserDefined: string[]
 	
 
 
@@ -65,6 +65,7 @@ export type FyrejetRequest = FyrejetRequestUnitialized & {
 	search: string,
 	query: RequestQuery,
 	body: Record<string, unknown>,
+	secret?: string,
 
 	activateExpress: () => FyrejetRequest,
 

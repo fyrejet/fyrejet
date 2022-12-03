@@ -2,7 +2,7 @@
 
 // Forked from jkybernees's excellent 0http
 
-import Trouter, { Match } from './trouter';
+import Trouter, { Match, MountedRouters } from './trouter';
 import next from './next';
 import LRU from 'mnemonist/lru-cache';
 import onChange from 'on-change';
@@ -22,14 +22,15 @@ export const sequential = (config: SequentialConfig, fyrejetApp: FyrejetApp) => 
 	if (!config.errorHandler) {
 		config.errorHandler = (err, req, res) => {
 			res.statusCode = 500
-			res.end(err.message)
+			if (err instanceof Error) return res.end(err.message)
+			return res.end(err)
 		}
 	}
 	if (!config.id) {
 		config.id = (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase()
 	}
 
-	const mountedRouters : Record<string|number, string|RegExp|string[]> = {}
+	const mountedRouters : MountedRouters = {}
 	const cache = new LRU<string, Match>(config.cacheSize)
 
 	const routerLookup = (req: FyrejetRequest, res: FyrejetResponse, step: NextFunction) => {
@@ -40,7 +41,8 @@ export const sequential = (config: SequentialConfig, fyrejetApp: FyrejetApp) => 
 				urlPrev: req.url as string,
 				methodPrev: req.method as string,
 				appPrev: [],
-				urlPrevious: []
+				urlPrevious: [],
+				paramsPrev: [],
 			}
 
 			makeReqParams(req)
@@ -137,7 +139,6 @@ export const sequential = (config: SequentialConfig, fyrejetApp: FyrejetApp) => 
 export default sequential
 
 function makeReqParams(req: FyrejetRequest) {
-	if (!req.rData_internal.paramsPrev) req.rData_internal.paramsPrev = []
 	req.params = {}
 	req.paramsUserDefined = [] as string[]
 	req.params = onChange(req.params, function (path, value, previousValue, name) {

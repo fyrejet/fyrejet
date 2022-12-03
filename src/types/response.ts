@@ -1,6 +1,7 @@
 import type {  ServerResponse } from "http"
 import type { FyrejetApp, FyrejetDataStorage, FyrejetRequest, Nullable, SingleOrArray } from "."
 
+import type {CookieOptions} from 'express-serve-static-core'
 export type FyrejetResponseUninitialized = (ServerResponse) & {
 	defaultErrHandler: (err?: unknown) => void,
 	app: FyrejetApp
@@ -49,4 +50,11 @@ export type FyrejetResponse<
 
 	location: (path: string) => FyrejetResponse,
 	redirect: (url: string, arg2: string | number) => FyrejetResponse,
+
+	cookie: (name: string, value: string, options?: CookieOptions) => FyrejetResponse,
+	clearCookie: (name: string, options?: CookieOptions) => FyrejetResponse
+}
+
+export {
+	CookieOptions
 }

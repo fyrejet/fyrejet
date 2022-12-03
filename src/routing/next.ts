@@ -1,11 +1,12 @@
 import onChange from 'on-change'
 import fastDecode from 'fast-decode-uri-component'
-import { FyrejetRequest, FyrejetResponse, Middleware } from '../types'
+import { FyrejetApp, FyrejetRequest, FyrejetResponse, Middleware, Params } from '../types'
 import { ErrorHandler, FinalRoute } from './types'
+import { MountedRouters, REGEX_KEY, Route } from './trouter'
 
-export function next (middlewares: Middleware[], middlewaresArgsNum: number[], req: FyrejetRequest, res: FyrejetResponse, index: number, routeIndex: number, routers = {}, defaultRoute: FinalRoute, errorHandler: ErrorHandler, error?: Error | null) {
+export function next (middlewares: Middleware[], middlewaresArgsNum: number[], req: FyrejetRequest, res: FyrejetResponse, index: number, routeIndex: number, routers : MountedRouters = {}, defaultRoute: FinalRoute, errorHandler: ErrorHandler, error?: Error | null) {
 
-  function paramOrNot (cb) {
+  function paramOrNot (cb: () => void) {
     if (!req.rData_internal.currentRouteMiddlewareNum) {
       req.rData_internal.currentRouteMiddlewareNum = 0
       if (req.route.keys.length) { // we don't want to extract params at EVERY middleware and at routes with no keys
@@ -26,11 +27,11 @@ export function next (middlewares: Middleware[], middlewaresArgsNum: number[], r
     return cb()
   }
 
-  function getParams (route) {
+  function getParams (route: Route) {
     let matches
-    const params = {}
+    const params : Params = {}
 
-    if (Array.isArray(route.keys)) {
+    if (route.keys[0] !== REGEX_KEY) {
       matches = route.pattern.exec(req.path)
       if (matches === null) return
       for (let j = 0; j < route.keys.length;) params[route.keys[j]] = matches[++j]
@@ -85,16 +86,15 @@ export function next (middlewares: Middleware[], middlewaresArgsNum: number[], r
       }
 
       if (route.starCatchAll) { // the http://example.com/* route ;)
-        onChange.target(req.params)['0'] = '/' + fastDecode(params['0'])
+        onChange.target(req.params)['0'] = '/' + fastDecode(params['0'] as string)
         return
       }
-      let prevParams = req.rData_internal.paramsPrev[req.rData_internal.paramsPrev.length - 1 || 0] || {}
-      prevParams = JSON.stringify(prevParams)
+      const prevParams = req.rData_internal.paramsPrev[req.rData_internal.paramsPrev.length - 1 || 0] || {}
 
-      if (prevParams !== JSON.stringify(params)) req.rData_internal.paramsPrev.push(Object.assign({}, params))
+      if (JSON.stringify(prevParams) !== JSON.stringify(params)) req.rData_internal.paramsPrev.push(Object.assign({}, params))
       Object.keys(params).forEach(key => {
         if (!req.paramsUserDefined.includes(key)) {
-          onChange.target(req.params)[key] = params[key] !== undefined ? fastDecode(params[key]) : undefined
+          onChange.target(req.params)[key] = params[key] !== undefined ? fastDecode(params[key] as string) : undefined
         }
       })
     }
@@ -164,14 +164,14 @@ export function next (middlewares: Middleware[], middlewaresArgsNum: number[], r
       }
 
       for (; routeIndex < req.routesToProcess.length; routeIndex++) {
-        if (req.routesToProcess[routeIndex].handlers.includes(middlewares[newIndex])) {
+        if (newIndex && req.routesToProcess[routeIndex].handlers.includes(middlewares[newIndex])) {
           index = newIndex
           return next(middlewares, middlewaresArgsNum, req, res, index, routeIndex, routers, defaultRoute, errorHandler, error)
         }
       }
 
       routeIndex = req.routesToProcess.length - 1
-      index = newIndex
+      index = newIndex as number
 
       return next(middlewares, middlewaresArgsNum, req, res, index, routeIndex, routers, defaultRoute, errorHandler, error)
     }
@@ -180,17 +180,18 @@ export function next (middlewares: Middleware[], middlewaresArgsNum: number[], r
   function finishStage () {
     try {
       if (middlewares[index].id) {
-        const pattern = routers[middlewares[index].id]
+		const possibleApp = middlewares[index] as unknown as FyrejetApp
+        const pattern = routers[middlewares[index].id as string]
         if (pattern) {
-          req.rData_internal.urlPrevious.push(req.url)
+          req.rData_internal.urlPrevious.push(req.url as string)
 
-          const mountpath = middlewares[index].getRouter().getSequentialConfig().mountpath || pattern
+          const mountpath = possibleApp.getRouter().getSequentialConfig().mountpath || pattern
           req.url = (req.url as string).replace(mountpath, '')
 
           delete req.rData_internal.lastPattern
         }
 
-        return middlewares[index].lookup(req, res, step)
+        return possibleApp.lookup(req, res, step)
       }
 
       if (middlewareArgsNum > 3) {

@@ -2,12 +2,12 @@
 
 import type { FyrejetRequest, FyrejetResponse, Middleware, Nullable, SingleOrArray, HttpMethod, FyrejetApp } from "../types";
 import type { ChangeSequentialConfig, GetSequentialConfig, SequentialConfig } from "./types";
-import { Key } from "../pathToRegexp";
+import { type Key, pathToRegexp } from "../pathToRegexp";
 
-const pathToRegexp = require('path-to-regexp')
 const methods = require('./methods').default
 const { v4: uuidv4 } = require('uuid')
 
+export const REGEX_KEY = 'regex'
 
 type AdditionalRouterProperties = {
 	id: Nullable<string|number>;
@@ -21,7 +21,7 @@ type AdditionalRouterProperties = {
 type AddRouteByMethod = (route: string, ...fns: Middleware[]) => void;
 
 export type Route = {
-	keys: SingleOrArray<string|number>,
+	keys: (string|number)[],
 	pattern: RegExp,
 	path: string | RegExp,
 	method: string,
@@ -50,6 +50,7 @@ export type Match = {
 	urlProperVerified?: string,
 }
 
+export type MountedRouters = Record<string|number, string|RegExp|string[]>
 
 export class Trouter {
   
@@ -57,7 +58,7 @@ export class Trouter {
   changeSequentialConfig: Nullable<ChangeSequentialConfig>;
   getSequentialConfig: Nullable<GetSequentialConfig>;
   opts: SequentialConfig;
-  mountedRouters: Record<string|number, string|RegExp|string[]>;
+  mountedRouters: MountedRouters;
   lookup: Middleware;
   routes: Route[];
   fyrejetApp: FyrejetApp;
@@ -175,14 +176,14 @@ export class Trouter {
     useOpts.end = false
     useOpts.strict = false
     const handlers = [...fnsPostFlag]
-    let pattern
-    let keys : string | SingleOrArray<string|number> = []
+    let pattern : RegExp
+    let keys : (string|number)[] = []
     if (route instanceof RegExp) {
       pattern = route
-      keys = 'regex'
+      keys = ['regex']
     } else {
 	  const tmpKeys : Key[] = []
-      pattern = pathToRegexp(route, tmpKeys, useOpts)
+      pattern = pathToRegexp(route, tmpKeys, useOpts) as RegExp
       keys = tmpKeys.map(item => item.name)
       keys = keys.filter(item => item !== 0)
       if (route && typeof route === 'string' && route !== '*') keys = routeStringPatternsTester(route, keys)
@@ -223,14 +224,14 @@ export class Trouter {
     }
     const routeOpts = Object.assign({}, this.opts)
     routeOpts.end = true
-    let keys : string | SingleOrArray<string|number> = []
-    let pattern
+    let keys : (string|number)[] = []
+    let pattern : RegExp
     if (route instanceof RegExp) {
       pattern = route
-      keys = 'regex'
+      keys = [REGEX_KEY]
     } else {
 	  const tmpKeys : Key[] = []
-      pattern = pathToRegexp(route, tmpKeys, routeOpts)
+      pattern = pathToRegexp(route, tmpKeys, routeOpts) as RegExp
       keys = tmpKeys.map(item => item.name)
       keys = keys.filter(item => item !== 0)
       if (route && typeof route === 'string' && route !== '*') keys = routeStringPatternsTester(route, keys)

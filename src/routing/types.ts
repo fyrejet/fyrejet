@@ -1,7 +1,7 @@
 import { FyrejetDataStorage, FyrejetRequest, FyrejetResponse, Middleware } from "../types";
 
 export type FinalRoute = (req: FyrejetRequest, res: FyrejetResponse) => void
-export type ErrorHandler = (err: Error, req: FyrejetRequest, res: FyrejetResponse) => void
+export type ErrorHandler = (err: Error | unknown, req: FyrejetRequest, res: FyrejetResponse) => void
 
 type SequentialConfigBase = {
 	mountpath?: string;

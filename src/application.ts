@@ -526,8 +526,6 @@ export const app: FyrejetAppProto = {
 	}
 }
 
-
-
 function tryRender(view, options, callback) {
 	try {
 		view.render(options, callback)
